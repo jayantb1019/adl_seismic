@@ -44,15 +44,15 @@ class Efficient_U(pl.LightningModule) : # denoiser
                     align_corners=False).clamp(min=-1.0, max=1.0)
         im_x4 = F.interpolate(im, size=(im.shape[2]//4, im.shape[3]//4), mode='bilinear',
                     align_corners=False).clamp(min=-1.0, max=1.0)
-        return im_x2.to(torch.float32).to(self.device), im_x4.to(torch.float32).to(self.device)
+        return im_x2.to(torch.float).to(self.device), im_x4.to(torch.float).to(self.device)
         
         
     def training_step(self, batch, batch_idx):
         
         clean, noisy, _ = batch 
         
-        clean = clean.to(torch.float32).to(self.device)
-        noisy = noisy.to(torch.float32).to(self.device)
+        clean = clean.to(torch.float).to(self.device)
+        noisy = noisy.to(torch.float).to(self.device)
         
         denoised, denoised_2, denoised_4 = self(noisy)
         clean_2, clean_4 = self._rescale_gt_2d(clean)
@@ -162,15 +162,15 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
                     align_corners=False).clamp(min=-1.0, max=1.0)
         im_x4 = F.interpolate(im, size=(im.shape[2]//4, im.shape[3]//4), mode='bilinear',
                     align_corners=False).clamp(min=-1.0, max=1.0)
-        return im_x2.to(torch.float32).to(self.device), im_x4.to(torch.float32).to(self.device)
+        return im_x2.to(torch.float).to(self.device), im_x4.to(torch.float).to(self.device)
     
     def training_step(self, batch, batch_idx) : ## look at this again!! discriminator should train on half a batch of clean and half a batch of denoised
         
         # loss for true sample
         clean, noisy, _ = batch 
         
-        clean = clean.to(torch.float32).to(self.device)
-        noisy = noisy.to(torch.float32).to(self.device)
+        clean = clean.to(torch.float).to(self.device)
+        noisy = noisy.to(torch.float).to(self.device)
         
         
         gt_bridge, gt_x0, gt_x2, gt_x4 = self.model(clean)
@@ -253,14 +253,14 @@ class ADL(pl.LightningModule) : # Full ADL model
                     align_corners=False).clamp(min=-1.0, max=1.0)
         im_x4 = F.interpolate(im, size=(im.shape[2]//4, im.shape[3]//4), mode='bilinear',
                     align_corners=False).clamp(min=-1.0, max=1.0)
-        return im_x2.to(torch.float32).cuda(self.device), im_x4.to(torch.float32).cuda(self.device)
+        return im_x2.to(torch.float).cuda(self.device), im_x4.to(torch.float).cuda(self.device)
     
     def training_step(self,batch, batch_idx, optimizer_idx) :
         
         clean, noisy, _ = batch 
         
-        clean = clean.to(torch.float32).to(self.device)
-        noisy = noisy.to(torch.float32).to(self.device)
+        clean = clean.to(torch.float).to(self.device)
+        noisy = noisy.to(torch.float).to(self.device)
         
         
         if optimizer_idx == 0 : # denoiser 

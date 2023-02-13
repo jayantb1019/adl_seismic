@@ -71,6 +71,7 @@ def main() :
         max_epochs=config['train']['denoiser']['epochs'], 
         fast_dev_run=True,          
         enable_model_summary=False,
+        # precision=32
     )
     
     
@@ -85,7 +86,8 @@ def main() :
         logger = discriminator_logger,
         max_epochs=config['train']['discriminator']['epochs'], 
         fast_dev_run=True, 
-         enable_model_summary=False,         
+         enable_model_summary=False,      
+         # precision=32   
     )
     trained_denoiser = Efficient_U(config).load_from_checkpoint('best')
     discriminator = Efficient_U_DISC(config, trained_denoiser)
@@ -101,7 +103,8 @@ def main() :
         logger = adl_logger,
         max_epochs=config['train']['ADL']['epochs'], 
         fast_dev_run=True, 
-        enable_model_summary=False,         
+        enable_model_summary=False,        
+        # precision=32 
     )
     
     trained_denoiser = Efficient_U(config).load_from_checkpoint('best')
