@@ -47,7 +47,7 @@ class Efficient_U(pl.LightningModule) : # denoiser
         return im_x2.to(torch.float32).to(self.device), im_x4.to(torch.float32).to(self.device)
         
         
-    def training_step(self, batch):
+    def training_step(self, batch, batch_idx):
         
         clean, noisy, _ = batch 
         
@@ -78,7 +78,7 @@ class Efficient_U(pl.LightningModule) : # denoiser
         
         return train_loss
 
-    def validation_step(self, batch):
+    def validation_step(self, batch, batch_idx):
         
         clean, noisy, _ = batch
         denoised, denoised_2, denoised_4 = self(noisy)
@@ -164,7 +164,7 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
                     align_corners=False).clamp(min=-1.0, max=1.0)
         return im_x2.to(torch.float32).to(self.device), im_x4.to(torch.float32).to(self.device)
     
-    def training_step(self, batch) : ## look at this again!! discriminator should train on half a batch of clean and half a batch of denoised
+    def training_step(self, batch, batch_idx) : ## look at this again!! discriminator should train on half a batch of clean and half a batch of denoised
         
         # loss for true sample
         clean, noisy, _ = batch 

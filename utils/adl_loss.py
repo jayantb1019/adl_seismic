@@ -25,7 +25,7 @@ def Loss_PYR(x_gt, yhat, levels=3) :
     of any two successive filtered images
     
     '''
-    print(x_gt)
+    # print(x_gt)
     
     def atw_kernel(ker_base, image_dtype, Cin, level=1) : # level = J 
         zeros_len = - 1 + 2**(level-1) # 2^(J-1) -1 zeros 
