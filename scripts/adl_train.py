@@ -77,7 +77,7 @@ def main() :
         # precision=32
     )
     
-    pdb.set_trace()
+    # pdb.set_trace()
     
     denoiser_trainer.fit(denoiser, datamodule)
     
