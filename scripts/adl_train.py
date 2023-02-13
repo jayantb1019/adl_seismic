@@ -108,15 +108,15 @@ def main(bs) :
          # precision=32   
     )
     
-    denoiser_checkpoint_path = '/Users/jayanthboddu/Downloads/denoiser_20230213_epoch=49-step=27600.ckpt'
+    denoiser_checkpoint_path = '/content/denoiser_20230213_epoch=49-step=27600.ckpt'
     
     trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
     discriminator = Efficient_U_DISC(trained_denoiser, config)
     
-    pdb.set_trace()
-    
     
     discriminator_trainer.fit(discriminator, datamodule)
+    
+    pdb.set_trace()
     
     # PHASE 3 : 
     print('''
