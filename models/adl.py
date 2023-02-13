@@ -149,14 +149,15 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         self.lr_scheduler_gamma = disc_config['lr_scheduler']['kwargs']['gamma']
         
         
-        self.save_hyperparameters(ignore=['model'])
+        self.save_hyperparameters(ignore=['model', 'disc_model'])
         
         self.model = model # trained denoiser model
+        self.disc_model = Efficient_Unet_disc(in_ch=1, out_ch=1, negative_slope = self.negative_slope, filter_base = 16 , bias=False)
         
         self.example_input_array = torch.zeros(self.batch_size, 1, self.patch_size, self.patch_size)
         
     def forward(self, x) : 
-        return self.model(x)
+        return self.disc_model(x)
     
     def _rescale_gt_2d(self,im):
         """ downsacle image by factor 2 and 4 """
@@ -175,7 +176,7 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         noisy = noisy.to(torch.float32).to(self.device)
         
         
-        gt_bridge, gt_x0, gt_x2, gt_x4 = self.model(clean)
+        gt_bridge, gt_x0, gt_x2, gt_x4 = self.disc_model(clean)
         B = clean.shape[0]
         
         true_ravel = torch.concat([torch.reshape(gt_bridge, [B,-1]),
@@ -187,7 +188,7 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
     
     
         y = noisy
-        y_bridge, y_pred, y_pred_x2, y_pred_x4 = self.model(y)
+        y_bridge, y_pred, y_pred_x2, y_pred_x4 = self.disc_model(self.model(y)[0])
         B = y.shape[0]
 
         # Compute the loss for the true sample
