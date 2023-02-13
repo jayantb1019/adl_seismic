@@ -1,0 +1,11 @@
+paths : 
+  data_dir : /Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/data/faciesmark
+  train : train/train_seismic.npy
+  test1 : test_once/test1_seismic.npy
+  test2 : test_once/test2_seismic.npy
+
+patch_index_files : 
+  train_patches : train_patches_$$patchsize$$_$$stride$$_$$mode$$.csv # mode must be 2d or 3d
+  test1_patches : test1_patches_$$patchsize$$_$$stride$$_$$mode$$.csv
+  test2_patches : test2_patches_$$patchsize$$_$$stride$$_$$mode$$.csv
+
