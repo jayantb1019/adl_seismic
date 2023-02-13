@@ -34,7 +34,7 @@ class FaciesMarkDataset(Dataset) :
 
     def __getitem__(self, index) :
         shape = [self.patch_size] * 3 if self.data_mode == '3d' else [self.patch_size] * 2 
-        data , noisy_data, label = np.zeros(shape, dtype=np.float64) , np.zeros(shape, dtype=np.float64),  np.zeros(shape, dtype=np.float64)
+        data , noisy_data, label = np.zeros(shape, dtype=np.float32) , np.zeros(shape, dtype=np.float32),  np.zeros(shape, dtype=np.float32)
         
         data_ = select_patch(self.dataset, self.patch_info, index, self.patch_size, self.data_mode)
         label_ = select_patch(self.labels, self.patch_info, index, self.patch_size, self.data_mode)

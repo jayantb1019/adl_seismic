@@ -42,11 +42,14 @@ def get_config(config_path) :
     return config
 
 
-def main() : 
+def main(bs) : 
     pl.seed_everything(42)
     traceback.install()
     
     config = get_config(CONFIG_PATH)
+    
+    if bs : # override config with argparse inputs
+        config['train']['data']['batch_size'] = bs
     
     modelSummaryCb = RichModelSummary(max_depth=-1)
     tqdmProgressCb = TQDMProgressBar(refresh_rate=20)
@@ -70,7 +73,7 @@ def main() :
           DENOISER WARM UP
           ================
           ''')
-    denoiser = Efficient_U(config).double()
+    denoiser = Efficient_U(config)
     
     denoiser_trainer = pl.Trainer(
         accelerator = device,
@@ -108,8 +111,8 @@ def main() :
     denoiser_checkpoint_path = ''
     pdb.set_trace()
     
-    trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path).double()
-    discriminator = Efficient_U_DISC(config, trained_denoiser).double()
+    trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
+    discriminator = Efficient_U_DISC(config, trained_denoiser)
     
     discriminator_trainer.fit(discriminator, datamodule)
     
@@ -135,10 +138,10 @@ def main() :
     
     pdb.set_trace()
     
-    trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path).double()
-    trained_discriminator = Efficient_U_DISC(config, trained_denoiser).load_from_checkpoint(discriminator_checkpoint_path).double()
+    trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
+    trained_discriminator = Efficient_U_DISC(config, trained_denoiser).load_from_checkpoint(discriminator_checkpoint_path)
 
-    adl = ADL(trained_denoiser, trained_discriminator, config).double()
+    adl = ADL(trained_denoiser, trained_discriminator, config)
     
     adl_trainer.fit(adl, datamodule) 
     
@@ -146,4 +149,9 @@ def main() :
     
 
 if __name__ == '__main__' : 
-    main()
+    
+    parser = ArgumentParser()
+    parser.add_argument('-bs', type=int, default=128)
+    
+    bs = parser.parse_args().bs
+    main(bs)
