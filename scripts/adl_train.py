@@ -32,6 +32,7 @@ CONFIG_PATH = '/content/adl_seismic/config/config_adl_faciesmark.yaml'
 # CONFIG_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/config/config_adl_faciesmark.yaml'
 
 device = 'cuda'
+fast_dev_run = False
 
 def get_config(config_path) : 
     # read config file 
@@ -64,6 +65,11 @@ def main() :
     
     
     # PHASE 1 : 
+    print('''
+          ================
+          DENOISER WARM UP
+          ================
+          ''')
     denoiser = Efficient_U(config).double()
     
     denoiser_trainer = pl.Trainer(
@@ -72,7 +78,7 @@ def main() :
         callbacks = [modelSummaryCb, tqdmProgressCb ],
         logger = denoiser_logger,
         max_epochs=config['train']['denoiser']['epochs'], 
-        fast_dev_run=True,          
+        fast_dev_run=fast_dev_run,          
         enable_model_summary=False,
         # precision=32
     )
@@ -82,6 +88,11 @@ def main() :
     denoiser_trainer.fit(denoiser, datamodule)
     
     # PHASE 2 : 
+    print('''
+          =====================
+          DISCRIMINATOR WARM UP
+          =====================
+          ''')
 
     discriminator_trainer = pl.Trainer(
         accelerator = device,
@@ -89,16 +100,25 @@ def main() :
         callbacks = [modelSummaryCb, tqdmProgressCb ],
         logger = discriminator_logger,
         max_epochs=config['train']['discriminator']['epochs'], 
-        fast_dev_run=True, 
+        fast_dev_run=fast_dev_run, 
          enable_model_summary=False,      
          # precision=32   
     )
-    trained_denoiser = Efficient_U(config).load_from_checkpoint('best').double()
+    
+    denoiser_checkpoint_path = ''
+    pdb.set_trace()
+    
+    trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path).double()
     discriminator = Efficient_U_DISC(config, trained_denoiser).double()
     
     discriminator_trainer.fit(discriminator, datamodule)
     
     # PHASE 3 : 
+    print('''
+          =====================
+              ADL TRAINING
+          =====================
+          ''')
     
     adl_trainer = pl.Trainer(
         accelerator = device,
@@ -106,13 +126,17 @@ def main() :
         callbacks = [modelSummaryCb, tqdmProgressCb ],
         logger = adl_logger,
         max_epochs=config['train']['ADL']['epochs'], 
-        fast_dev_run=True, 
+        fast_dev_run=fast_dev_run, 
         enable_model_summary=False,        
         # precision=32 
     )
+    denoiser_checkpoint_path = ''
+    discriminator_checkpoint_path = ''
     
-    trained_denoiser = Efficient_U(config).load_from_checkpoint('best').double()
-    trained_discriminator = Efficient_U_DISC(config, trained_denoiser).load_from_checkpoint('best').double()
+    pdb.set_trace()
+    
+    trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path).double()
+    trained_discriminator = Efficient_U_DISC(config, trained_denoiser).load_from_checkpoint(discriminator_checkpoint_path).double()
 
     adl = ADL(trained_denoiser, trained_discriminator, config).double()
     
