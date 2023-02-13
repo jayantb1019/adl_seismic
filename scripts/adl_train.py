@@ -29,6 +29,9 @@ from adl import Efficient_U, Efficient_U_DISC, ADL
 from dm_faciesmark import FaciesMarkDataModule
 
 CONFIG_PATH = '/content/adl_seismic/config/config_adl_faciesmark.yaml'
+# CONFIG_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/config/config_adl_faciesmark.yaml'
+
+device = 'cuda'
 
 def get_config(config_path) : 
     # read config file 
@@ -61,10 +64,10 @@ def main() :
     
     
     # PHASE 1 : 
-    denoiser = Efficient_U(config)
+    denoiser = Efficient_U(config).double()
     
     denoiser_trainer = pl.Trainer(
-        accelerator = 'cuda',
+        accelerator = device,
         devices=1, 
         callbacks = [modelSummaryCb, tqdmProgressCb ],
         logger = denoiser_logger,
@@ -74,13 +77,14 @@ def main() :
         # precision=32
     )
     
+    pdb.set_trace()
     
     denoiser_trainer.fit(denoiser, datamodule)
     
     # PHASE 2 : 
 
     discriminator_trainer = pl.Trainer(
-        accelerator = 'cuda',
+        accelerator = device,
         devices=1, 
         callbacks = [modelSummaryCb, tqdmProgressCb ],
         logger = discriminator_logger,
@@ -89,15 +93,15 @@ def main() :
          enable_model_summary=False,      
          # precision=32   
     )
-    trained_denoiser = Efficient_U(config).load_from_checkpoint('best')
-    discriminator = Efficient_U_DISC(config, trained_denoiser)
+    trained_denoiser = Efficient_U(config).load_from_checkpoint('best').double()
+    discriminator = Efficient_U_DISC(config, trained_denoiser).double()
     
     discriminator_trainer.fit(discriminator, datamodule)
     
     # PHASE 3 : 
     
     adl_trainer = pl.Trainer(
-        accelerator = 'cuda',
+        accelerator = device,
         devices=1, 
         callbacks = [modelSummaryCb, tqdmProgressCb ],
         logger = adl_logger,
@@ -107,10 +111,10 @@ def main() :
         # precision=32 
     )
     
-    trained_denoiser = Efficient_U(config).load_from_checkpoint('best')
-    trained_discriminator = Efficient_U_DISC(config, trained_denoiser).load_from_checkpoint('best')
+    trained_denoiser = Efficient_U(config).load_from_checkpoint('best').double()
+    trained_discriminator = Efficient_U_DISC(config, trained_denoiser).load_from_checkpoint('best').double()
 
-    adl = ADL(trained_denoiser, trained_discriminator, config)
+    adl = ADL(trained_denoiser, trained_discriminator, config).double()
     
     adl_trainer.fit(adl, datamodule) 
     
