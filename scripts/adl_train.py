@@ -57,9 +57,9 @@ def main(bs) :
     # logger 
     timestamp = datetime.now().strftime("%d_%m_%Y_%H_%M_%S")
     experiment_version = f"adl_{timestamp}"
-    denoiser_logger = TensorBoardLogger('lightning_logs', name='denoiser', log_graph=False, version = experiment_version)
-    discriminator_logger = TensorBoardLogger('lightning_logs', name='discriminator', log_graph=False, version = experiment_version)
-    adl_logger = TensorBoardLogger('lightning_logs', name='adl', log_graph=False, version = experiment_version)
+    denoiser_logger = TensorBoardLogger('../lightning_logs', name='denoiser', log_graph=False, version = experiment_version)
+    discriminator_logger = TensorBoardLogger('../lightning_logs', name='discriminator', log_graph=False, version = experiment_version)
+    adl_logger = TensorBoardLogger('../lightning_logs', name='adl', log_graph=False, version = experiment_version)
     
     datamodule = FaciesMarkDataModule(config['train']['data'])
     
@@ -68,27 +68,27 @@ def main(bs) :
     
     
     # PHASE 1 : 
-    print('''
-          ================
-          DENOISER WARM UP
-          ================
-          ''')
-    denoiser = Efficient_U(config)
+    # print('''
+    #       ================
+    #       DENOISER WARM UP
+    #       ================
+    #       ''')
+    # denoiser = Efficient_U(config)
     
-    denoiser_trainer = pl.Trainer(
-        accelerator = device,
-        devices=1, 
-        callbacks = [modelSummaryCb, tqdmProgressCb ],
-        logger = denoiser_logger,
-        max_epochs=config['train']['denoiser']['epochs'], 
-        fast_dev_run=fast_dev_run,          
-        enable_model_summary=False,
-        # precision=32
-    )
+    # denoiser_trainer = pl.Trainer(
+    #     accelerator = device,
+    #     devices=1, 
+    #     callbacks = [modelSummaryCb, tqdmProgressCb ],
+    #     logger = denoiser_logger,
+    #     max_epochs=config['train']['denoiser']['epochs'], 
+    #     fast_dev_run=fast_dev_run,          
+    #     enable_model_summary=False,
+    #     # precision=32
+    # )
     
-    # pdb.set_trace()
+    # # pdb.set_trace()
     
-    denoiser_trainer.fit(denoiser, datamodule)
+    # denoiser_trainer.fit(denoiser, datamodule)
     
     # PHASE 2 : 
     print('''
@@ -108,11 +108,13 @@ def main(bs) :
          # precision=32   
     )
     
-    denoiser_checkpoint_path = ''
-    pdb.set_trace()
+    denoiser_checkpoint_path = '/Users/jayanthboddu/Downloads/denoiser_20230213_epoch=49-step=27600.ckpt'
     
     trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
-    discriminator = Efficient_U_DISC(config, trained_denoiser)
+    discriminator = Efficient_U_DISC(trained_denoiser, config)
+    
+    pdb.set_trace()
+    
     
     discriminator_trainer.fit(discriminator, datamodule)
     

@@ -148,9 +148,11 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         self.lr_scheduler = disc_config['lr_scheduler']['type']
         self.lr_scheduler_gamma = disc_config['lr_scheduler']['kwargs']['gamma']
         
+        
+        self.save_hyperparameters(ignore=['model'])
+        
         self.model = model # trained denoiser model
         
-        self.save_hyperparameters()
         self.example_input_array = torch.zeros(self.batch_size, 1, self.patch_size, self.patch_size)
         
     def forward(self, x) : 
