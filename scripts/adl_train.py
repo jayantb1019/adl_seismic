@@ -64,7 +64,7 @@ def main() :
     denoiser = Efficient_U(config)
     
     denoiser_trainer = pl.Trainer(
-        accelerator = 'cpu',
+        accelerator = 'cuda',
         devices=1, 
         callbacks = [modelSummaryCb, tqdmProgressCb ],
         logger = denoiser_logger,
@@ -79,7 +79,7 @@ def main() :
     # PHASE 2 : 
 
     discriminator_trainer = pl.Trainer(
-        accelerator = 'cpu',
+        accelerator = 'cuda',
         devices=1, 
         callbacks = [modelSummaryCb, tqdmProgressCb ],
         logger = discriminator_logger,
@@ -95,7 +95,7 @@ def main() :
     # PHASE 3 : 
     
     adl_trainer = pl.Trainer(
-        accelerator = 'cpu',
+        accelerator = 'cuda',
         devices=1, 
         callbacks = [modelSummaryCb, tqdmProgressCb ],
         logger = adl_logger,
