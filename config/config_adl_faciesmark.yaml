@@ -3,7 +3,7 @@ train :
     seed : 42
     patch_size : 32
     stride  : 32
-    batch_size : 128 
+    batch_size : 786
     data_mode : 2d # could be 3d 
 
     train_std_interval : [0.0, 0.9]
