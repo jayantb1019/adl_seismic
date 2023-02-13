@@ -206,8 +206,8 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
 
         optimiser = torch.optim.Adam(self.parameters(), lr = lr)
         lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimiser, 
-                                                            milestones = list(range(50000, 500000, 50000)), 
-                                                            gamma=self.lr_scheduler_gamma)
+                                                            milestones = list(range(10000,27600, 5000)), 
+                                                            gamma=self.lr_scheduler_gamma, verbose=True)
 
         return {
             'optimizer' : optimiser, 
@@ -335,12 +335,12 @@ class ADL(pl.LightningModule) : # Full ADL model
         )
         
         denoiser_lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(opt_denoiser, 
-                                                            milestones = list(range(50000, 500000, 50000)), 
-                                                            gamma=self.lr_scheduler_gamma)
+                                                            milestones = list(range(10000,27600, 5000)), 
+                                                            gamma=self.lr_scheduler_gamma, verbose=True)
         
         discriminator_lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(opt_discriminator, 
-                                                            milestones = list(range(50000, 500000, 50000)), 
-                                                            gamma=self.lr_scheduler_gamma)
+                                                            milestones = list(range(10000,27600, 5000)), 
+                                                            gamma=self.lr_scheduler_gamma, verbose=True)
         
         return [
             {
