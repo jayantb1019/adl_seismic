@@ -47,7 +47,7 @@ class Efficient_U(pl.LightningModule) : # denoiser
         return im_x2.to(torch.float32).to(self.device), im_x4.to(torch.float32).to(self.device)
         
         
-    def training_step(self, batch, batch_idx):
+    def training_step(self, batch, batch_idx, *args, **kwargs):
         
         clean, noisy, _ = batch 
         
@@ -78,7 +78,7 @@ class Efficient_U(pl.LightningModule) : # denoiser
         
         return train_loss
 
-    def validation_step(self, batch, batch_idx):
+    def validation_step(self, batch, batch_idx, *args, **kwargs):
         
         clean, noisy, _ = batch
         denoised, denoised_2, denoised_4 = self(noisy)
@@ -167,7 +167,7 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
                     align_corners=False).clamp(min=-1.0, max=1.0)
         return im_x2.to(torch.float32).to(self.device), im_x4.to(torch.float32).to(self.device)
     
-    def training_step(self, batch, batch_idx) : ## look at this again!! discriminator should train on half a batch of clean and half a batch of denoised
+    def training_step(self, batch, batch_idx, *args, **kwargs) : ## look at this again!! discriminator should train on half a batch of clean and half a batch of denoised
         
         # loss for true sample
         clean, noisy, _ = batch 
@@ -202,6 +202,44 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         loss = (loss_true + loss_pred)/2
         
         self.log('disc_train_loss', loss, prog_bar=True )
+        
+        return loss
+    
+    def validation_step(self, batch, batch_idx, *args, **kwargs) : ## look at this again!! discriminator should train on half a batch of clean and half a batch of denoised
+        
+        # loss for true sample
+        clean, noisy, _ = batch 
+        
+        clean = clean.to(torch.float32).to(self.device)
+        noisy = noisy.to(torch.float32).to(self.device)
+        
+        
+        gt_bridge, gt_x0, gt_x2, gt_x4 = self.disc_model(clean)
+        B = clean.shape[0]
+        
+        true_ravel = torch.concat([torch.reshape(gt_bridge, [B,-1]),
+                                torch.reshape(gt_x0, [B,-1]), 
+                                torch.reshape(gt_x2, [B,-1]),
+                                torch.reshape(gt_x4, [B,-1])
+                                ], axis=-1)
+        loss_true = torch.mean(RELU(1.0 - true_ravel)) 
+    
+    
+        y = noisy
+        y_bridge, y_pred, y_pred_x2, y_pred_x4 = self.disc_model(self.model(y)[0])
+        B = y.shape[0]
+
+        # Compute the loss for the true sample
+        pred_ravel = torch.concat([torch.reshape(y_bridge, [B,-1]),
+                            torch.reshape(y_pred, [B,-1]), 
+                            torch.reshape(y_pred_x2, [B,-1]),
+                            torch.reshape(y_pred_x4, [B,-1])
+                            ], axis=-1)
+        loss_pred = torch.mean(RELU(1.0 + pred_ravel)) 
+        
+        loss = (loss_true + loss_pred)/2
+        
+        self.log('disc_val_loss', loss, prog_bar=True )
         
         return loss
     
@@ -264,7 +302,7 @@ class ADL(pl.LightningModule) : # Full ADL model
                     align_corners=False).clamp(min=-1.0, max=1.0)
         return im_x2.to(torch.float32).cuda(self.device), im_x4.to(torch.float32).cuda(self.device)
     
-    def training_step(self,batch, batch_idx, optimizer_idx) :
+    def training_step(self, batch, batch_idx, optimizer_idx, *args, **kwargs) :
         
         clean, noisy, _ = batch 
         
@@ -331,8 +369,9 @@ class ADL(pl.LightningModule) : # Full ADL model
             self.log('disc_train_loss', loss, prog_bar = True)
             
             return loss
+
         
-    def validation_step(self,batch, batch_idx, optimizer_idx) :
+    def validation_step(self, batch, batch_idx, optimizer_idx, *args, **kwargs) :
     
         clean, noisy, _ = batch 
         
