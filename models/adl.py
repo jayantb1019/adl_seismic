@@ -133,7 +133,7 @@ class Efficient_U(pl.LightningModule) : # denoiser
             self.logger.experiment.add_histogram(name, params, self.current_epoch)
              
 class Efficient_U_DISC(pl.LightningModule) :  # discriminator
-    def __init__(self, model, config) : 
+    def __init__(self, model, config,  *args, **kwargs) : 
         super().__init__()
         data = config['train']['data']
         self.patch_size = data['patch_size']
@@ -234,7 +234,7 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         
 class ADL(pl.LightningModule) : # Full ADL model
     def __init__(self, denoiser, discriminator, config) : 
-        super().__init_() 
+        super().__init__() 
         self.denoiser = denoiser 
         self.discriminator = discriminator 
         
@@ -246,9 +246,9 @@ class ADL(pl.LightningModule) : # Full ADL model
         self.lr = adl_config['lr']
         self.optimizer = adl_config['optimizer']
         self.lr_scheduler = adl_config['lr_scheduler']['type']
-        self.gamma = adl_config['lr_scheduler']['gamma']
+        self.gamma = adl_config['lr_scheduler']['kwargs']['gamma']
         
-        self.save_hyperparameters()
+        self.save_hyperparameters(ignore=['denoiser', 'discriminator'])
         self.example_input_array = torch.zeros(self.batch_size, 1, self.patch_size, self.patch_size)
         
     def forward(self, x) : 
