@@ -344,8 +344,8 @@ class ADL(pl.LightningModule) : # Full ADL model
             
             B = batch[0]
 
-            real_bridge, real_x0, real_x2, real_x4 = self.model_disc(real)
-            fake_bridge, fake_x0, fake_x2 , fake_x4 = self.model_disc(fake)
+            real_bridge, real_x0, real_x2, real_x4 = self.discriminator(real)
+            fake_bridge, fake_x0, fake_x2 , fake_x4 = self.discriminator(fake)
             
             real_ravel =  torch.concat([torch.reshape(real_bridge, [B,-1]),
                                 torch.reshape(real_x0, [B,-1]), 
