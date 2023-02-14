@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import pytorch_lightning as pl 
 
+import pdb 
+
 import sys 
 sys.path.append('../utils')
 
@@ -179,10 +181,10 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         gt_bridge, gt_x0, gt_x2, gt_x4 = self.disc_model(clean)
         B = clean.shape[0]
         
-        true_ravel = torch.concat([torch.reshape(gt_bridge, [B,-1]),
-                                torch.reshape(gt_x0, [B,-1]), 
-                                torch.reshape(gt_x2, [B,-1]),
-                                torch.reshape(gt_x4, [B,-1])
+        true_ravel = torch.concat([torch.reshape(gt_bridge, (B,-1)),
+                                torch.reshape(gt_x0, (B,-1)), 
+                                torch.reshape(gt_x2, (B,-1)),
+                                torch.reshape(gt_x4, (B,-1))
                                 ], axis=-1)
         loss_true = torch.mean(RELU(1.0 - true_ravel)) 
     
@@ -192,10 +194,10 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         B = y.shape[0]
 
         # Compute the loss for the true sample
-        pred_ravel = torch.concat([torch.reshape(y_bridge, [B,-1]),
-                            torch.reshape(y_pred, [B,-1]), 
-                            torch.reshape(y_pred_x2, [B,-1]),
-                            torch.reshape(y_pred_x4, [B,-1])
+        pred_ravel = torch.concat([torch.reshape(y_bridge, (B,-1)),
+                            torch.reshape(y_pred, (B,-1)), 
+                            torch.reshape(y_pred_x2, (B,-1)),
+                            torch.reshape(y_pred_x4, (B,-1))
                             ], axis=-1)
         loss_pred = torch.mean(RELU(1.0 + pred_ravel)) 
         
@@ -217,10 +219,10 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         gt_bridge, gt_x0, gt_x2, gt_x4 = self.disc_model(clean)
         B = clean.shape[0]
         
-        true_ravel = torch.concat([torch.reshape(gt_bridge, [B,-1]),
-                                torch.reshape(gt_x0, [B,-1]), 
-                                torch.reshape(gt_x2, [B,-1]),
-                                torch.reshape(gt_x4, [B,-1])
+        true_ravel = torch.concat([torch.reshape(gt_bridge, (B,-1)),
+                                torch.reshape(gt_x0, (B,-1)), 
+                                torch.reshape(gt_x2, (B,-1)),
+                                torch.reshape(gt_x4, (B,-1))
                                 ], axis=-1)
         loss_true = torch.mean(RELU(1.0 - true_ravel)) 
     
@@ -230,10 +232,10 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         B = y.shape[0]
 
         # Compute the loss for the true sample
-        pred_ravel = torch.concat([torch.reshape(y_bridge, [B,-1]),
-                            torch.reshape(y_pred, [B,-1]), 
-                            torch.reshape(y_pred_x2, [B,-1]),
-                            torch.reshape(y_pred_x4, [B,-1])
+        pred_ravel = torch.concat([torch.reshape(y_bridge, (B,-1)),
+                            torch.reshape(y_pred, (B,-1)), 
+                            torch.reshape(y_pred_x2, (B,-1)),
+                            torch.reshape(y_pred_x4, (B,-1))
                             ], axis=-1)
         loss_pred = torch.mean(RELU(1.0 + pred_ravel)) 
         
@@ -347,18 +349,20 @@ class ADL(pl.LightningModule) : # Full ADL model
             real_bridge, real_x0, real_x2, real_x4 = self.discriminator(real)
             fake_bridge, fake_x0, fake_x2 , fake_x4 = self.discriminator(fake)
             
-            real_ravel =  torch.concat([torch.reshape(real_bridge, [B,-1]),
-                                torch.reshape(real_x0, [B,-1]), 
-                                torch.reshape(real_x2, [B,-1]),
-                                torch.reshape(real_x4, [B,-1])
+            pdb.set_trace()
+            
+            real_ravel =  torch.concat([torch.reshape(real_bridge, (B,-1)),
+                                torch.reshape(real_x0, (B,-1)), 
+                                torch.reshape(real_x2, (B,-1)),
+                                torch.reshape(real_x4, (B,-1))
                                 ], axis=-1)
             
             real_loss = torch.mean(RELU(1.0 - real_ravel))
             
-            fake_ravel =  torch.concat([torch.reshape(fake_bridge, [B,-1]),
-                                torch.reshape(fake_x0, [B,-1]), 
-                                torch.reshape(fake_x2, [B,-1]),
-                                torch.reshape(fake_x4, [B,-1])
+            fake_ravel =  torch.concat([torch.reshape(fake_bridge, (B,-1)),
+                                torch.reshape(fake_x0, (B,-1)), 
+                                torch.reshape(fake_x2, (B,-1)),
+                                torch.reshape(fake_x4, (B,-1))
                                 ], axis=-1)
             
             fake_loss = torch.mean(RELU(1.0 + fake_ravel))
