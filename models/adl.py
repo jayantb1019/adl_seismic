@@ -115,7 +115,7 @@ class Efficient_U(pl.LightningModule) : # denoiser
 
         optimiser = torch.optim.Adam(self.parameters(), lr = lr)
         lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimiser, 
-                                                            milestones = list(range(50000, 500000, 50000)), 
+                                                            milestones = list(range(15,50,5)), 
                                                             gamma=self.lr_scheduler_gamma)
 
         return {
@@ -253,14 +253,14 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
 
         optimiser = torch.optim.Adam(self.parameters(), lr = lr)
         lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimiser, 
-                                                            milestones = list(range(10000,27600, 5000)), 
+                                                            milestones = list(range(15,50,5)), 
                                                             gamma=self.lr_scheduler_gamma, verbose=True)
 
         return {
             'optimizer' : optimiser, 
             'lr_scheduler' : {
                 'scheduler' : lr_scheduler, 
-                'monitor'   : 'val_loss',
+                'monitor'   : 'disc_val_loss',
                 'interval'  : 'epoch',
                 'frequency' : 1
             }
@@ -418,11 +418,11 @@ class ADL(pl.LightningModule) : # Full ADL model
         )
         
         denoiser_lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(opt_denoiser, 
-                                                            milestones = list(range(5000,27600, 5000)), 
+                                                            milestones = list(range(15,50,5)), 
                                                             gamma=self.gamma, verbose=True)
         
         discriminator_lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(opt_discriminator, 
-                                                            milestones = list(range(5000,27600, 5000)), 
+                                                            milestones = list(range(15,50,5)), 
                                                             gamma=self.gamma, verbose=True)
         
         return [
@@ -438,7 +438,7 @@ class ADL(pl.LightningModule) : # Full ADL model
                 'optimizer' : opt_discriminator, 
                 'lr_scheduler' : {
                     'scheduler' : discriminator_lr_scheduler, 
-                    'monitor'   : 'disc_val_loss', 
+                    'monitor'   : 'disc_train_loss', 
                     'frequency' : 1 
                 }
             }
