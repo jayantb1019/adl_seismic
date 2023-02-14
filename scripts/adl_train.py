@@ -28,10 +28,10 @@ sys.path.append('../datamodules')
 from adl import Efficient_U, Efficient_U_DISC, ADL
 from dm_faciesmark import FaciesMarkDataModule
 
-CONFIG_PATH = '/content/adl_seismic/config/config_adl_faciesmark.yaml'
-# CONFIG_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/config/config_adl_faciesmark.yaml'
+# CONFIG_PATH = '/content/adl_seismic/config/config_adl_faciesmark.yaml'
+CONFIG_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/config/config_adl_faciesmark.yaml'
 
-device = 'cuda'
+device = 'cpu'
 fast_dev_run = False
 
 def get_config(config_path) : 
@@ -135,13 +135,14 @@ def main(bs) :
         enable_model_summary=False,        
         # precision=32 
     )
-    denoiser_checkpoint_path = '/content/denoiser_20230213_epoch=49-step=27600.ckpt'
-    discriminator_checkpoint_path = '/content/discriminator_20230213_epoch=49-step=27600.ckpt'
+    # denoiser_checkpoint_path = '/content/denoiser_20230213_epoch=49-step=27600.ckpt'
+    # discriminator_checkpoint_path = '/content/discriminator_20230213_epoch=49-step=27600.ckpt'
     
-    pdb.set_trace()
+    denoiser_checkpoint_path = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/lightning_logs/denoiser_20230213_epoch=49-step=27600.ckpt'
+    discriminator_checkpoint_path = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/lightning_logs/discriminator_20230213_epoch=49-step=27600.ckpt'
     
-    trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
-    trained_discriminator = Efficient_U_DISC(trained_denoiser, config).load_from_checkpoint(discriminator_checkpoint_path)
+    trained_denoiser = Efficient_U.load_from_checkpoint(checkpoint_path = denoiser_checkpoint_path, config = config)
+    trained_discriminator = Efficient_U_DISC.load_from_checkpoint(checkpoint_path = discriminator_checkpoint_path, model=trained_denoiser, config=config)
 
     adl = ADL(trained_denoiser, trained_discriminator, config)
     
