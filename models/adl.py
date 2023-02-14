@@ -344,7 +344,7 @@ class ADL(pl.LightningModule) : # Full ADL model
             real = clean 
             
             
-            B = batch.shape[0]
+            B = fake.shape[0]
 
             real_bridge, real_x0, real_x2, real_x4 = self.discriminator(real)
             fake_bridge, fake_x0, fake_x2 , fake_x4 = self.discriminator(fake)
