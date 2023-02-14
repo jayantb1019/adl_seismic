@@ -361,10 +361,10 @@ class ADL(pl.LightningModule) : # Full ADL model
             self.log('denoiser_val_pyr_loss', pyr_loss_1 + pyr_loss_2 + pyr_loss_4)
             self.log('denoiser_val_hist_loss', hist_loss_1 + hist_loss_2 + hist_loss_4)
             
-            train_loss = l1_loss_1 + l1_loss_2 + l1_loss_4 + pyr_loss_1 + pyr_loss_2 + pyr_loss_4 + hist_loss_1 + hist_loss_2 + hist_loss_4
-            self.log('denoiser_val_loss', train_loss, prog_bar=True)
+            val_loss = l1_loss_1 + l1_loss_2 + l1_loss_4 + pyr_loss_1 + pyr_loss_2 + pyr_loss_4 + hist_loss_1 + hist_loss_2 + hist_loss_4
+            self.log('denoiser_val_loss', val_loss, prog_bar=True)
             
-            return train_loss
+            return val_loss
             
         if optimizer_idx == 1 : # discriminator
             
@@ -410,12 +410,12 @@ class ADL(pl.LightningModule) : # Full ADL model
         )
         
         denoiser_lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(opt_denoiser, 
-                                                            milestones = list(range(10000,27600, 5000)), 
-                                                            gamma=self.lr_scheduler_gamma, verbose=True)
+                                                            milestones = list(range(5000,27600, 5000)), 
+                                                            gamma=self.gamma, verbose=True)
         
         discriminator_lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(opt_discriminator, 
-                                                            milestones = list(range(10000,27600, 5000)), 
-                                                            gamma=self.lr_scheduler_gamma, verbose=True)
+                                                            milestones = list(range(5000,27600, 5000)), 
+                                                            gamma=self.gamma, verbose=True)
         
         return [
             {
