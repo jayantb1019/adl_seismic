@@ -141,7 +141,7 @@ def main(bs) :
     pdb.set_trace()
     
     trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
-    trained_discriminator = Efficient_U_DISC(config, trained_denoiser).load_from_checkpoint(discriminator_checkpoint_path)
+    trained_discriminator = Efficient_U_DISC(trained_denoiser, config).load_from_checkpoint(discriminator_checkpoint_path)
 
     adl = ADL(trained_denoiser, trained_discriminator, config)
     
