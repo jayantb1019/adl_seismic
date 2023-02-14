@@ -199,7 +199,13 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
                             ], axis=-1)
         loss_pred = torch.mean(RELU(1.0 + pred_ravel)) 
         
-        return (loss_true + loss_pred)/2
+        loss = (loss_true + loss_pred)/2
+        
+        self.log('disc_train_loss', loss, prog_bar=True )
+        
+        return loss
+    
+    
 
     def configure_optimizers(self):
         
@@ -325,6 +331,74 @@ class ADL(pl.LightningModule) : # Full ADL model
             self.log('disc_train_loss', loss, prog_bar = True)
             
             return loss
+        
+        def validation_step(self,batch, batch_idx, optimizer_idx) :
+        
+            clean, noisy, _ = batch 
+            
+            clean = clean.to(torch.float32).to(self.device)
+            noisy = noisy.to(torch.float32).to(self.device)
+            
+            
+            if optimizer_idx == 0 : # denoiser 
+                
+                denoised, denoised_2, denoised_4 = self.denoiser(noisy)
+                clean_2, clean_4 = self._rescale_gt_2d(clean)
+                
+                l1_loss_1 = Loss_L1(clean, denoised)
+                l1_loss_2 = Loss_L1(clean_2, denoised_2)
+                l1_loss_4 = Loss_L1(clean_4, denoised_4)
+                
+                pyr_loss_1 = Loss_PYR(clean, denoised, levels = 3)
+                pyr_loss_2 = Loss_PYR(clean_2, denoised_2, levels = 3)
+                pyr_loss_4 = Loss_PYR(clean_4, denoised_4, levels = 3)
+                
+                hist_loss_1  = Loss_Hist(clean, denoised)
+                hist_loss_2  = Loss_Hist(clean_2, denoised_2)
+                hist_loss_4  = Loss_Hist(clean_4, denoised_4)
+                
+                self.log('denoiser_val_l1_loss', l1_loss_1 + l1_loss_2 + l1_loss_4)
+                self.log('denoiser_val_pyr_loss', pyr_loss_1 + pyr_loss_2 + pyr_loss_4)
+                self.log('denoiser_val_hist_loss', hist_loss_1 + hist_loss_2 + hist_loss_4)
+                
+                train_loss = l1_loss_1 + l1_loss_2 + l1_loss_4 + pyr_loss_1 + pyr_loss_2 + pyr_loss_4 + hist_loss_1 + hist_loss_2 + hist_loss_4
+                self.log('denoiser_val_loss', train_loss, prog_bar=True)
+                
+                return train_loss
+                
+            if optimizer_idx == 1 : # discriminator
+                
+                fake , _ , _  = self.denoiser(noisy)
+                real = clean 
+                
+                
+                B = batch[0]
+
+                real_bridge, real_x0, real_x2, real_x4 = self.model_disc(real)
+                fake_bridge, fake_x0, fake_x2 , fake_x4 = self.model_disc(fake)
+                
+                real_ravel =  torch.concat([torch.reshape(real_bridge, [B,-1]),
+                                    torch.reshape(real_x0, [B,-1]), 
+                                    torch.reshape(real_x2, [B,-1]),
+                                    torch.reshape(real_x4, [B,-1])
+                                    ], axis=-1)
+                
+                real_loss = torch.mean(RELU(1.0 - real_ravel))
+                
+                fake_ravel =  torch.concat([torch.reshape(fake_bridge, [B,-1]),
+                                    torch.reshape(fake_x0, [B,-1]), 
+                                    torch.reshape(fake_x2, [B,-1]),
+                                    torch.reshape(fake_x4, [B,-1])
+                                    ], axis=-1)
+                
+                fake_loss = torch.mean(RELU(1.0 + fake_ravel))
+                
+                
+                loss = (real_loss + fake_loss) / 2 
+                
+                self.log('disc_val_loss', loss, prog_bar = True)
+                
+                return loss
             
     def configure_optimizers(self):
         opt_denoiser = torch.optim.Adam(
@@ -348,7 +422,7 @@ class ADL(pl.LightningModule) : # Full ADL model
                 'optimizer' : opt_denoiser, 
                 'lr_scheduler' : {
                     'scheduler' : denoiser_lr_scheduler, 
-                    'monitor'   : 'denoiser_train_loss', 
+                    'monitor'   : 'denoiser_val_loss', 
                     'frequency' : 1 
                 }
             }, 
@@ -356,7 +430,7 @@ class ADL(pl.LightningModule) : # Full ADL model
                 'optimizer' : opt_discriminator, 
                 'lr_scheduler' : {
                     'scheduler' : discriminator_lr_scheduler, 
-                    'monitor'   : 'disc_train_loss', 
+                    'monitor'   : 'disc_val_loss', 
                     'frequency' : 1 
                 }
             }

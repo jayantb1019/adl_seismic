@@ -91,32 +91,32 @@ def main(bs) :
     # denoiser_trainer.fit(denoiser, datamodule)
     
     # PHASE 2 : 
-    print('''
-          =====================
-          DISCRIMINATOR WARM UP
-          =====================
-          ''')
+    # print('''
+    #       =====================
+    #       DISCRIMINATOR WARM UP
+    #       =====================
+    #       ''')
 
-    discriminator_trainer = pl.Trainer(
-        accelerator = device,
-        devices=1, 
-        callbacks = [modelSummaryCb, tqdmProgressCb ],
-        logger = discriminator_logger,
-        max_epochs=config['train']['discriminator']['epochs'], 
-        fast_dev_run=fast_dev_run, 
-         enable_model_summary=False,      
-         # precision=32   
-    )
+    # discriminator_trainer = pl.Trainer(
+    #     accelerator = device,
+    #     devices=1, 
+    #     callbacks = [modelSummaryCb, tqdmProgressCb ],
+    #     logger = discriminator_logger,
+    #     max_epochs=config['train']['discriminator']['epochs'], 
+    #     fast_dev_run=fast_dev_run, 
+    #      enable_model_summary=False,      
+    #      # precision=32   
+    # )
     
-    denoiser_checkpoint_path = '/content/denoiser_20230213_epoch=49-step=27600.ckpt'
+    # denoiser_checkpoint_path = '/content/denoiser_20230213_epoch=49-step=27600.ckpt'
     
-    trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
-    discriminator = Efficient_U_DISC(trained_denoiser, config)
+    # trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
+    # discriminator = Efficient_U_DISC(trained_denoiser, config)
     
     
-    discriminator_trainer.fit(discriminator, datamodule)
+    # discriminator_trainer.fit(discriminator, datamodule)
     
-    pdb.set_trace()
+    # pdb.set_trace()
     
     # PHASE 3 : 
     print('''
@@ -135,8 +135,8 @@ def main(bs) :
         enable_model_summary=False,        
         # precision=32 
     )
-    denoiser_checkpoint_path = ''
-    discriminator_checkpoint_path = ''
+    denoiser_checkpoint_path = '/content/denoiser_20230213_epoch=49-step=27600.ckpt'
+    discriminator_checkpoint_path = '/content/discriminator_20230213_epoch=49-step=27600.ckpt'
     
     pdb.set_trace()
     

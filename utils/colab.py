@@ -7,5 +7,6 @@ drive.mount('/content/drive')
 !git clone https://github.com/jayantb1019/adl_seismic.git
 !mkdir -p /content/adl_seismic/data
 !unzip /content/drive/MyDrive/faciesmark.zip -d /content/adl_seismic/data/.
-!cp /content/drive/denoiser_20230213_epoch=49-step=27600.ckpt /content/denoiser_20230213_epoch=49-step=27600.ckpt
+!cp /content/drive/MyDrive/denoiser_20230213_epoch=49-step=27600.ckpt /content/denoiser_20230213_epoch=49-step=27600.ckpt
+!cp /content/drive/MyDrive/discriminator_20230213_epoch=49-step=27600.ckpt /content/discriminator_20230213_epoch=49-step=27600.ckpt
 
