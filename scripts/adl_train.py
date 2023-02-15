@@ -93,64 +93,64 @@ def main(bs) :
     # pdb.set_trace()
     
     # PHASE 2 : 
-    print('''
-          =====================
-          DISCRIMINATOR WARM UP
-          =====================
-          ''')
-
-    discriminator_trainer = pl.Trainer(
-        accelerator = device,
-        devices=1, 
-        callbacks = [modelSummaryCb, tqdmProgressCb ],
-        logger = discriminator_logger,
-        max_epochs=config['train']['discriminator']['epochs'], 
-        fast_dev_run=fast_dev_run, 
-         enable_model_summary=False,      
-         # precision=32   
-    )
-    
-    denoiser_checkpoint_path = '/content/denoiser_20230214_tanh_epoch=15-step=8832.ckpt'
-    
-    trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
-    discriminator = Efficient_U_DISC(trained_denoiser, config)
-    
-    
-    discriminator_trainer.fit(discriminator, datamodule)
-    
-    pdb.set_trace()
-    
-    # PHASE 3 : 
     # print('''
     #       =====================
-    #           ADL TRAINING
+    #       DISCRIMINATOR WARM UP
     #       =====================
     #       ''')
-    
-    # adl_trainer = pl.Trainer(
+
+    # discriminator_trainer = pl.Trainer(
     #     accelerator = device,
     #     devices=1, 
     #     callbacks = [modelSummaryCb, tqdmProgressCb ],
-    #     logger = adl_logger,
-    #     max_epochs=config['train']['ADL']['epochs'], 
+    #     logger = discriminator_logger,
+    #     max_epochs=config['train']['discriminator']['epochs'], 
     #     fast_dev_run=fast_dev_run, 
-    #     enable_model_summary=False,        
-    #     # precision=32 
+    #      enable_model_summary=False,      
+    #      # precision=32   
     # )
-    # denoiser_checkpoint_path = '/content/denoiser_20230213_epoch=49-step=27600.ckpt'
-    # discriminator_checkpoint_path = '/content/discriminator_20230213_epoch=49-step=27600.ckpt'
     
-    # # denoiser_checkpoint_path = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/lightning_logs/denoiser_20230213_epoch=49-step=27600.ckpt'
-    # # discriminator_checkpoint_path = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/lightning_logs/discriminator_20230213_epoch=49-step=27600.ckpt'
+    # denoiser_checkpoint_path = '/content/denoiser_20230214_tanh_epoch=15-step=8832.ckpt'
     
-    # trained_denoiser = Efficient_U.load_from_checkpoint(checkpoint_path = denoiser_checkpoint_path, config = config)
-    # trained_discriminator = Efficient_U_DISC.load_from_checkpoint(checkpoint_path = discriminator_checkpoint_path, model=trained_denoiser, config=config)
-
-    # adl = ADL(trained_denoiser, trained_discriminator, config)
+    # trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
+    # discriminator = Efficient_U_DISC(trained_denoiser, config)
     
-    # adl_trainer.fit(adl, datamodule) 
+    
+    # discriminator_trainer.fit(discriminator, datamodule)
     
     # pdb.set_trace()
+    
+    # PHASE 3 : 
+    print('''
+          =====================
+              ADL TRAINING
+          =====================
+          ''')
+    
+    adl_trainer = pl.Trainer(
+        accelerator = device,
+        devices=1, 
+        callbacks = [modelSummaryCb, tqdmProgressCb ],
+        logger = adl_logger,
+        max_epochs=config['train']['ADL']['epochs'], 
+        fast_dev_run=fast_dev_run, 
+        enable_model_summary=False,        
+        # precision=32 
+    )
+    denoiser_checkpoint_path = '/content/denoiser_20230214_tanh_epoch=15-step=8832.ckpt'
+    discriminator_checkpoint_path = '/content/discriminator_20230214_epoch=10-step=6072.ckpt'
+    
+    # denoiser_checkpoint_path = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/lightning_logs/denoiser_20230213_epoch=49-step=27600.ckpt'
+    # discriminator_checkpoint_path = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/lightning_logs/discriminator_20230213_epoch=49-step=27600.ckpt'
+    
+    trained_denoiser = Efficient_U.load_from_checkpoint(checkpoint_path = denoiser_checkpoint_path, config = config)
+    trained_discriminator = Efficient_U_DISC.load_from_checkpoint(checkpoint_path = discriminator_checkpoint_path, model=trained_denoiser, config=config)
+
+    adl = ADL(trained_denoiser, trained_discriminator, config)
+    
+    adl_trainer.fit(adl, datamodule) 
+    
+    pdb.set_trace()
     
 
 if __name__ == '__main__' : 
