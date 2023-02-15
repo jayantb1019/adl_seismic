@@ -115,9 +115,7 @@ class Efficient_U(pl.LightningModule) : # denoiser
         lr = self.lr
 
         optimiser = torch.optim.Adam(self.parameters(), lr = lr)
-        lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimiser, 
-                                                            milestones = list(range(15,50,5)), 
-                                                            gamma=self.lr_scheduler_gamma)
+        lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimiser, mode='min', patience = 5, threshold=0.001, verbose=True)
 
         return {
             'optimizer' : optimiser, 
@@ -253,9 +251,10 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         lr = self.lr
 
         optimiser = torch.optim.Adam(self.parameters(), lr = lr)
-        lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimiser, 
-                                                            milestones = list(range(15,50,5)), 
-                                                            gamma=self.lr_scheduler_gamma, verbose=True)
+        # lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimiser, 
+        #                                                     milestones = list(range(15,50,5)), 
+        #                                                     gamma=self.lr_scheduler_gamma, verbose=True)
+        lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimiser, mode='min', patience = 5, threshold=0.001, verbose=True)
 
         return {
             'optimizer' : optimiser, 
@@ -418,13 +417,9 @@ class ADL(pl.LightningModule) : # Full ADL model
             self.discriminator.parameters(), lr = self.lr
         )
         
-        denoiser_lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(opt_denoiser, 
-                                                            milestones = list(range(15,50,5)), 
-                                                            gamma=self.gamma, verbose=True)
+        denoiser_lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_denoiser, mode='min', patience = 5, threshold=0.001, verbose=True)
         
-        discriminator_lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(opt_discriminator, 
-                                                            milestones = list(range(15,50,5)), 
-                                                            gamma=self.gamma, verbose=True)
+        discriminator_lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_discriminator, mode='min', patience = 5, threshold=0.001, verbose=True)
         
         return [
             {
