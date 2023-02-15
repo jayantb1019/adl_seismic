@@ -67,28 +67,30 @@ def main(bs) :
     
     
     
-    # PHASE 1 : 
-    # print('''
-    #       ================
-    #       DENOISER WARM UP
-    #       ================
-    #       ''')
-    # denoiser = Efficient_U(config)
+    #PHASE 1 : 
+    print('''
+          ================
+          DENOISER WARM UP
+          ================
+          ''')
+    denoiser = Efficient_U(config)
     
-    # denoiser_trainer = pl.Trainer(
-    #     accelerator = device,
-    #     devices=1, 
-    #     callbacks = [modelSummaryCb, tqdmProgressCb ],
-    #     logger = denoiser_logger,
-    #     max_epochs=config['train']['denoiser']['epochs'], 
-    #     fast_dev_run=fast_dev_run,          
-    #     enable_model_summary=False,
-    #     # precision=32
-    # )
+    denoiser_trainer = pl.Trainer(
+        accelerator = device,
+        devices=1, 
+        callbacks = [modelSummaryCb, tqdmProgressCb ],
+        logger = denoiser_logger,
+        max_epochs=config['train']['denoiser']['epochs'], 
+        fast_dev_run=fast_dev_run,          
+        enable_model_summary=False,
+        # precision=32
+    )
     
-    # # pdb.set_trace()
+    # pdb.set_trace()
     
-    # denoiser_trainer.fit(denoiser, datamodule)
+    denoiser_trainer.fit(denoiser, datamodule)
+    
+    pdb.set_trace()
     
     # PHASE 2 : 
     # print('''
@@ -119,36 +121,36 @@ def main(bs) :
     # pdb.set_trace()
     
     # PHASE 3 : 
-    print('''
-          =====================
-              ADL TRAINING
-          =====================
-          ''')
+    # print('''
+    #       =====================
+    #           ADL TRAINING
+    #       =====================
+    #       ''')
     
-    adl_trainer = pl.Trainer(
-        accelerator = device,
-        devices=1, 
-        callbacks = [modelSummaryCb, tqdmProgressCb ],
-        logger = adl_logger,
-        max_epochs=config['train']['ADL']['epochs'], 
-        fast_dev_run=fast_dev_run, 
-        enable_model_summary=False,        
-        # precision=32 
-    )
-    denoiser_checkpoint_path = '/content/denoiser_20230213_epoch=49-step=27600.ckpt'
-    discriminator_checkpoint_path = '/content/discriminator_20230213_epoch=49-step=27600.ckpt'
+    # adl_trainer = pl.Trainer(
+    #     accelerator = device,
+    #     devices=1, 
+    #     callbacks = [modelSummaryCb, tqdmProgressCb ],
+    #     logger = adl_logger,
+    #     max_epochs=config['train']['ADL']['epochs'], 
+    #     fast_dev_run=fast_dev_run, 
+    #     enable_model_summary=False,        
+    #     # precision=32 
+    # )
+    # denoiser_checkpoint_path = '/content/denoiser_20230213_epoch=49-step=27600.ckpt'
+    # discriminator_checkpoint_path = '/content/discriminator_20230213_epoch=49-step=27600.ckpt'
     
-    # denoiser_checkpoint_path = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/lightning_logs/denoiser_20230213_epoch=49-step=27600.ckpt'
-    # discriminator_checkpoint_path = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/lightning_logs/discriminator_20230213_epoch=49-step=27600.ckpt'
+    # # denoiser_checkpoint_path = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/lightning_logs/denoiser_20230213_epoch=49-step=27600.ckpt'
+    # # discriminator_checkpoint_path = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/lightning_logs/discriminator_20230213_epoch=49-step=27600.ckpt'
     
-    trained_denoiser = Efficient_U.load_from_checkpoint(checkpoint_path = denoiser_checkpoint_path, config = config)
-    trained_discriminator = Efficient_U_DISC.load_from_checkpoint(checkpoint_path = discriminator_checkpoint_path, model=trained_denoiser, config=config)
+    # trained_denoiser = Efficient_U.load_from_checkpoint(checkpoint_path = denoiser_checkpoint_path, config = config)
+    # trained_discriminator = Efficient_U_DISC.load_from_checkpoint(checkpoint_path = discriminator_checkpoint_path, model=trained_denoiser, config=config)
 
-    adl = ADL(trained_denoiser, trained_discriminator, config)
+    # adl = ADL(trained_denoiser, trained_discriminator, config)
     
-    adl_trainer.fit(adl, datamodule) 
+    # adl_trainer.fit(adl, datamodule) 
     
-    pdb.set_trace()
+    # pdb.set_trace()
     
 
 if __name__ == '__main__' : 
