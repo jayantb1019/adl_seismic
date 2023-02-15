@@ -26,7 +26,7 @@ class FeatureExtrator(nn.Module):
     
     self.bn1 = nn.BatchNorm2d(int(1.5*num_filter))
     self.bn2 = nn.BatchNorm2d(num_filter)
-    self.tanh = nn.Tanh(inplace=False)
+    self.tanh = nn.Tanh()
 
     self.conv4 = nn.Conv2d(in_channels=int(1.5*num_filter), out_channels=num_filter, 
                             kernel_size=7, stride=1, padding =3, bias=bias)
@@ -58,7 +58,7 @@ class Residual_block(nn.Module):
     self.conv3 = nn.Conv2d(in_ch, out_ch, kernel_size=1, stride=stride, padding =(0,0), bias=bias)
 
     self.bn = nn.BatchNorm2d(out_ch)
-    self.tanh = nn.Tanh(inplace=False)
+    self.tanh = nn.Tanh()
 
   def forward(self, inp):
     x = self.tanh(self.bn(self.conv1(inp)))
