@@ -26,7 +26,7 @@ class FeatureExtrator(nn.Module):
     
     self.bn1 = nn.BatchNorm2d(int(1.5*num_filter))
     self.bn2 = nn.BatchNorm2d(num_filter)
-    self.relu = nn.ReLU(inplace=False)
+    self.tanh = nn.Tanh(inplace=False)
 
     self.conv4 = nn.Conv2d(in_channels=int(1.5*num_filter), out_channels=num_filter, 
                             kernel_size=7, stride=1, padding =3, bias=bias)
@@ -36,7 +36,7 @@ class FeatureExtrator(nn.Module):
     # self.leakyrelu = nn.LeakyReLU(negative_slope=leaky_relu_alpha)
   def forward(self, inp):
     x = torch.cat((self.conv1(inp), self.conv2(inp), self.conv3(inp)), dim=1)
-    x = self.relu(self.bn1(x))
+    x = self.tanh(self.bn1(x))
 
     x = self.bn2(self.conv4(x))
 
@@ -58,17 +58,17 @@ class Residual_block(nn.Module):
     self.conv3 = nn.Conv2d(in_ch, out_ch, kernel_size=1, stride=stride, padding =(0,0), bias=bias)
 
     self.bn = nn.BatchNorm2d(out_ch)
-    self.relu = nn.ReLU(inplace=False)
+    self.tanh = nn.Tanh(inplace=False)
 
   def forward(self, inp):
-    x = self.relu(self.bn(self.conv1(inp)))
+    x = self.tanh(self.bn(self.conv1(inp)))
     x = self.bn(self.conv2(x)) # the second relu is wrong, corrected
 
     # Shortcut Connection
     s = self.conv3(inp)
 
    # Activation
-    x = self.relu(x)
+    x = self.tanh(x)
     
     # activation is performed in model file
     return x
@@ -108,7 +108,7 @@ class Transformer(nn.Module):
 
     self.classifier = nn.Sequential(
         nn.Conv2d(ch_tmp, out_ch, kernel_size=1,stride=1, bias=False),
-        nn.Sigmoid(),
+        nn.Tanh(),
     )
 
   def forward(self, x):
@@ -139,7 +139,8 @@ class Disc_Transformer(nn.Module):
 
   def forward(self, x):
     x =  self.layers(x)
-    x = F.leaky_relu(x, negative_slope=self.negative_slope, inplace=False)
+    # x = F.leaky_relu(x, negative_slope=self.negative_slope, inplace=False)
+    x = F.tanh(x)
     x = self.classifier(x)
     return x
 

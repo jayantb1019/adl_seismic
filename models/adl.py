@@ -14,6 +14,7 @@ from adl_loss import Loss_L1 , Loss_PYR, Loss_Hist
 #TODO : Change the milestones (list of epoch indices) in MultiStepLR schedulers.
 
 RELU = nn.ReLU(inplace=False)
+# TANH = nn.Tanh()
 
 class Efficient_U(pl.LightningModule) : # denoiser
     def __init__(self, config) : 
