@@ -49,10 +49,10 @@ def main(args) :
     config = get_config(CONFIG_PATH)
     
     if args.bs : # override config with argparse inputs
-        config['train']['data']['batch_size'] = bs
+        config['train']['data']['batch_size'] = args.bs
         
     if args.accelerator : 
-        device = args.accelerator
+        accelerator = args.accelerator
     
     modelSummaryCb = RichModelSummary(max_depth=-1)
     tqdmProgressCb = TQDMProgressBar(refresh_rate=20)
