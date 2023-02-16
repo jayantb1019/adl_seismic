@@ -31,7 +31,7 @@ from dm_faciesmark import FaciesMarkDataModule
 CONFIG_PATH = '/content/adl_seismic/config/config_adl_faciesmark.yaml'
 # CONFIG_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/config/config_adl_faciesmark.yaml'
 
-device = 'cuda'
+device = 'tpu'
 fast_dev_run = False
 
 def get_config(config_path) : 
