@@ -163,7 +163,7 @@ if __name__ == '__main__' :
     parser.add_argument('-acc', type=str, default='cuda')
     
     bs = parser.parse_args().bs
-    accelerator = parser.parse_args().accelerator
+    accelerator = parser.parse_args().acc
     
     args = dict(bs = bs , accelerator = accelerator)
     main(args)
