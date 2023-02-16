@@ -24,8 +24,8 @@ class FeatureExtrator(nn.Module):
     self.conv3 = nn.Conv2d(in_channels=in_ch, out_channels=num_filter//2, 
                            kernel_size=7, dilation=(4,4), padding=12,bias=bias)
     
-    self.bn1 = nn.BatchNorm2d(int(1.5*num_filter))
-    self.bn2 = nn.BatchNorm2d(num_filter)
+    # self.bn1 = nn.BatchNorm2d(int(1.5*num_filter))
+    # self.bn2 = nn.BatchNorm2d(num_filter)
     self.tanh = nn.Tanh()
 
     self.conv4 = nn.Conv2d(in_channels=int(1.5*num_filter), out_channels=num_filter, 
@@ -36,9 +36,10 @@ class FeatureExtrator(nn.Module):
     # self.leakyrelu = nn.LeakyReLU(negative_slope=leaky_relu_alpha)
   def forward(self, inp):
     x = torch.cat((self.conv1(inp), self.conv2(inp), self.conv3(inp)), dim=1)
-    x = self.tanh(self.bn1(x))
-
-    x = self.bn2(self.conv4(x))
+    # x = self.tanh(self.bn1(x))
+    x = self.tanh(x)
+    x = self.conv4(x)
+    # x = self.bn2(self.conv4(x))
 
     # Shortcut Connection
     s = self.conv5(inp)
@@ -46,6 +47,7 @@ class FeatureExtrator(nn.Module):
     # Addition
     x = x + s
 
+    x = self.tanh(x)
     
     return x #  return self.leakyrelu(x) [tf code has a leaky relu. this file does not]
 
@@ -61,17 +63,20 @@ class Residual_block(nn.Module):
     self.tanh = nn.Tanh()
 
   def forward(self, inp):
-    x = self.tanh(self.bn(self.conv1(inp)))
-    x = self.bn(self.conv2(x)) # the second relu is wrong, corrected
-
+    # x = self.tanh(self.bn(self.conv1(inp)))
+    x = self.tanh(self.conv1(inp))
+    # x = self.bn(self.conv2(x)) # the second relu is wrong, corrected
+    x = self.conv2(x)
     # Shortcut Connection
     s = self.conv3(inp)
 
    # Activation
-    x = self.tanh(x)
+    # x = self.tanh(x)
     
     # activation is performed in model file
-    return x
+    x =  x + s
+    
+    return self.tanh(x)
 
 
 # Decoder block
@@ -108,7 +113,7 @@ class Transformer(nn.Module):
 
     self.classifier = nn.Sequential(
         nn.Conv2d(ch_tmp, out_ch, kernel_size=1,stride=1, bias=False),
-        nn.Tanh(),
+        nn.Sigmoid(),
     )
 
   def forward(self, x):
@@ -142,6 +147,7 @@ class Disc_Transformer(nn.Module):
     # x = F.leaky_relu(x, negative_slope=self.negative_slope, inplace=False)
     x = F.tanh(x)
     x = self.classifier(x)
+    x = F.sigmoid(x)
     return x
 
 

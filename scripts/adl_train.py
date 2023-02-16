@@ -93,6 +93,10 @@ def main(args) :
     
     denoiser_trainer.fit(denoiser, datamodule)
     
+    results = denoiser_trainer.test(denoiser, datamodule)
+
+    print(results)
+    
     pdb.set_trace()
     
     # PHASE 2 : 
