@@ -31,7 +31,7 @@ from dm_faciesmark import FaciesMarkDataModule
 CONFIG_PATH = '/content/adl_seismic/config/config_adl_faciesmark.yaml'
 # CONFIG_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/config/config_adl_faciesmark.yaml'
 
-device = 'tpu'
+accelerator = 'cuda'
 fast_dev_run = False
 
 def get_config(config_path) : 
@@ -42,14 +42,17 @@ def get_config(config_path) :
     return config
 
 
-def main(bs) : 
+def main(args) : 
     pl.seed_everything(42)
     traceback.install()
     
     config = get_config(CONFIG_PATH)
     
-    if bs : # override config with argparse inputs
+    if args.bs : # override config with argparse inputs
         config['train']['data']['batch_size'] = bs
+        
+    if args.accelerator : 
+        device = args.accelerator
     
     modelSummaryCb = RichModelSummary(max_depth=-1)
     tqdmProgressCb = TQDMProgressBar(refresh_rate=20)
@@ -76,7 +79,7 @@ def main(bs) :
     # denoiser = Efficient_U(config)
     
     # denoiser_trainer = pl.Trainer(
-    #     accelerator = device,
+    #     accelerator = accelerator,
     #     devices=1, 
     #     callbacks = [modelSummaryCb, tqdmProgressCb ],
     #     logger = denoiser_logger,
@@ -100,7 +103,7 @@ def main(bs) :
     #       ''')
 
     # discriminator_trainer = pl.Trainer(
-    #     accelerator = device,
+    #     accelerator = accelerator,
     #     devices=1, 
     #     callbacks = [modelSummaryCb, tqdmProgressCb ],
     #     logger = discriminator_logger,
@@ -128,7 +131,7 @@ def main(bs) :
           ''')
     
     adl_trainer = pl.Trainer(
-        accelerator = device,
+        accelerator = accelerator,
         devices=1, 
         callbacks = [modelSummaryCb, tqdmProgressCb ],
         logger = adl_logger,
@@ -157,6 +160,10 @@ if __name__ == '__main__' :
     
     parser = ArgumentParser()
     parser.add_argument('-bs', type=int, default=128)
+    parser.add_argument('-acc', type=str, default='cuda')
     
     bs = parser.parse_args().bs
-    main(bs)
+    accelerator = parser.parse_args().accelerator
+    
+    args = dict(bs = bs , accelerator = accelerator)
+    main(args)
