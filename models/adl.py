@@ -85,11 +85,11 @@ class Efficient_U(pl.LightningModule) : # denoiser
 
         train_psnr = peak_signal_noise_ratio(denoised.detach(), clean.detach(), data_range=2.0)
         train_ssim = structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, kernel_size = 5, )
-        train_msssim = multiscale_structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, kernel_size = 5, data_range=2.0)
+        # train_msssim = multiscale_structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, kernel_size = 5, data_range=2.0)
 
         self.log('train_psnr', train_psnr)
         self.log('train_ssim', train_ssim)
-        self.log('train_msssim', train_msssim)
+        # self.log('train_msssim', train_msssim)
         
         return train_loss
 
@@ -122,11 +122,11 @@ class Efficient_U(pl.LightningModule) : # denoiser
 
         val_psnr = peak_signal_noise_ratio(denoised.detach(), clean.detach(), data_range=2.0)
         val_ssim = structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, kernel_size = 5, )
-        val_msssim = multiscale_structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, kernel_size = 5, data_range=2.0)
+        # val_msssim = multiscale_structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, kernel_size = 5, data_range=2.0)
 
         self.log('val_psnr', val_psnr)
         self.log('val_ssim', val_ssim)
-        self.log('val_msssim', val_msssim)
+        # self.log('val_msssim', val_msssim)
 
         return val_loss 
          
