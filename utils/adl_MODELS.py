@@ -81,7 +81,7 @@ class Decoder_block(nn.Module):
 
 
     self.up_sampling = nn.ConvTranspose2d(in_ch, out_ch, 3, stride=2, 
-                                          padding=1, output_padding=1) #nn.Upsample(scale_factor=2)
+                                          padding=1, output_padding=1, bias=False) #nn.Upsample(scale_factor=2)
     self.resblock = Residual_block(out_ch+skip_ch, out_ch, stride=1, bias=False)
 
   def forward(self, inp, skip_features):

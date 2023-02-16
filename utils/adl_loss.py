@@ -109,7 +109,7 @@ def Loss_Hist(x_gt, y_pred):
         for i in range(n_channels):
             x_hist = torch.histc(x_gt[b,i,:,:], bins=500, min=-1, max=1.)  # increased the bins from 256 to 500 , changed min and max to -1,1
             y_hist = torch.histc(y_pred[b,i,:,:], bins=500, min=-1, max=1.) # increased the bins from 256 to 500 , changed min and max to -1,1
-            loss_all += log_cosh_torch(x_hist, y_hist)
+            loss_all += log_cosh_torch(x_hist.detach(), y_hist.detach())
              
     return  loss_all/torch.prod(torch.tensor(x_gt.size()))
 

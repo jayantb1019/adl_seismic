@@ -18,7 +18,7 @@ train :
     noise_factor : 0.5       # [0,1]
 
     dir : 
-      data_root : /content/adl_seismic/data/
+      data_root : /local1/workspace/adl_seismic/data/faciesmark
       train_data_path : train/train_seismic.npy
       val_data_path : test_once/test1_seismic.npy
       test_data_path : test_once/test2_seismic.npy

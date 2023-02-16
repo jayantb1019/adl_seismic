@@ -3,6 +3,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 import pytorch_lightning as pl 
 
+
+import torchmetrics
+from torchmetrics.functional import peak_signal_noise_ratio, structural_similarity_index_measure, multiscale_structural_similarity_index_measure
+
 import pdb 
 
 import sys 
@@ -78,6 +82,14 @@ class Efficient_U(pl.LightningModule) : # denoiser
         
         train_loss = l1_loss_1 + l1_loss_2 + l1_loss_4 + pyr_loss_1 + pyr_loss_2 + pyr_loss_4 + hist_loss_1 + hist_loss_2 + hist_loss_4
         self.log('train_loss', train_loss, prog_bar=True)
+
+        train_psnr = peak_signal_noise_ratio(denoised.detach(), clean.detach(), datarange=2.0)
+        train_ssim = structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, kernel_size = 5, )
+        train_msssim = multiscale_structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, kernel_size = 5, data_range=2.0)
+
+        self.log('train_psnr', train_psnr)
+        self.log('train_ssim', train_ssim)
+        self.log('train_msssim', train_msssim)
         
         return train_loss
 
@@ -107,7 +119,15 @@ class Efficient_U(pl.LightningModule) : # denoiser
         val_loss = l1_loss_1 + l1_loss_2 + l1_loss_4 + pyr_loss_1 + pyr_loss_2 + pyr_loss_4 + hist_loss_1 + hist_loss_2 + hist_loss_4
        
         self.log('val_loss', val_loss, prog_bar=True)
-        
+
+        val_psnr = peak_signal_noise_ratio(denoised.detach(), clean.detach(), datarange=2.0)
+        val_ssim = structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, kernel_size = 5, )
+        val_msssim = multiscale_structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, kernel_size = 5, data_range=2.0)
+
+        self.log('val_psnr', val_psnr)
+        self.log('val_ssim', val_ssim)
+        self.log('val_msssim', val_msssim)
+
         return val_loss 
     
      
