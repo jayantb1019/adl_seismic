@@ -129,13 +129,13 @@ class Efficient_U(pl.LightningModule) : # denoiser
         self.log('val_msssim', val_msssim)
 
         return val_loss 
+         
     
-     
     def configure_optimizers(self):
         lr = self.lr
 
         optimiser = torch.optim.Adam(self.parameters(), lr = lr)
-        lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimiser, mode='min', patience = 5, threshold=0.001, verbose=True)
+        lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimiser, mode='min', patience = 3, threshold=0.001, verbose=True)
 
         return {
             'optimizer' : optimiser, 
