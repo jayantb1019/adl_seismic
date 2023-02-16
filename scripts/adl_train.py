@@ -46,7 +46,7 @@ def main(args) :
     traceback.install()
     
     if args['loc'] == 'colab' : 
-        CONFIG_PATH = '/content/adl_seismic/config/config_adl_faciesmark.yaml'
+        CONFIG_PATH = '/content/adl_seismic/config/config_adl_faciesmark_colab.yaml'
     else : 
         CONFIG_PATH = '/local1/workspace/adl_seismic/config/config_adl_faciesmark.yaml'
     
