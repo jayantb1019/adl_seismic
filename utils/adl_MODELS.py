@@ -113,7 +113,7 @@ class Transformer(nn.Module):
 
     self.classifier = nn.Sequential(
         nn.Conv2d(ch_tmp, out_ch, kernel_size=1,stride=1, bias=False),
-        nn.Sigmoid(),
+        nn.Tanh(),
     )
 
   def forward(self, x):
