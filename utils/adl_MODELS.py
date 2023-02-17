@@ -59,7 +59,7 @@ class Residual_block(nn.Module):
     self.conv2 = nn.Conv2d(out_ch, out_ch, kernel_size=3, stride=1, padding =(1,1), bias=bias)
     self.conv3 = nn.Conv2d(in_ch, out_ch, kernel_size=1, stride=stride, padding =(0,0), bias=bias)
 
-    self.bn = nn.BatchNorm2d(out_ch)
+    # self.bn = nn.BatchNorm2d(out_ch)
     self.tanh = nn.Tanh()
 
   def forward(self, inp):
