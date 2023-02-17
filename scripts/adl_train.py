@@ -28,8 +28,8 @@ sys.path.append('../datamodules')
 from adl import Efficient_U, Efficient_U_DISC, ADL
 from dm_faciesmark import FaciesMarkDataModule
 
-CONFIG_PATH = '../config/config_adl_faciesmark.yaml'
-# CONFIG_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/config/config_adl_faciesmark.yaml'
+# CONFIG_PATH = '../config/config_adl_faciesmark.yaml'
+# # CONFIG_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/config/config_adl_faciesmark.yaml'
 
 accelerator = 'cuda'
 fast_dev_run = False
@@ -45,6 +45,11 @@ def get_config(config_path) :
 def main(args) : 
     pl.seed_everything(42)
     traceback.install()
+    
+    if args['loc'] == 'colab' : 
+        CONFIG_PATH = '/content/adl_seismic/config/config_adl_faciesmark_colab.yaml'
+    else : 
+        CONFIG_PATH = '/local1/workspace/adl_seismic/config/config_adl_faciesmark.yaml'
     
     config = get_config(CONFIG_PATH)
     
@@ -71,29 +76,27 @@ def main(args) :
     
     
     #PHASE 1 : 
-    print('''
-          ================
-          DENOISER WARM UP
-          ================
-          ''')
-    denoiser = Efficient_U(config)
+    # print('''
+    #       ================
+    #       DENOISER WARM UP
+    #       ================
+    #       ''')
+    # denoiser = Efficient_U(config)
     
-    denoiser_trainer = pl.Trainer(
-        accelerator = accelerator,
-        devices=1, 
-        callbacks = [modelSummaryCb, tqdmProgressCb ],
-        logger = denoiser_logger,
-        max_epochs=config['train']['denoiser']['epochs'], 
-        fast_dev_run=fast_dev_run,          
-        enable_model_summary=False,
-        # precision=32
-    )
+    # denoiser_trainer = pl.Trainer(
+    #     accelerator = accelerator,
+    #     devices=1, 
+    #     callbacks = [modelSummaryCb, tqdmProgressCb ],
+    #     logger = denoiser_logger,
+    #     max_epochs=config['train']['denoiser']['epochs'], 
+    #     fast_dev_run=fast_dev_run,          
+    #     enable_model_summary=False,
+    #     # precision=32
+    # )
     
-    # # pdb.set_trace()
     
-    denoiser_trainer.fit(denoiser, datamodule)
+    # denoiser_trainer.fit(denoiser, datamodule)
     
-    pdb.set_trace()
     
     # PHASE 2 : 
     print('''
@@ -113,7 +116,7 @@ def main(args) :
          # precision=32   
     )
     
-    denoiser_checkpoint_path = '../lightning/denoiser_20230214_tanh_epoch=15-step=8832.ckpt'
+    denoiser_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_16_02_2023_17_44_28_no_bn/checkpoints/epoch=49-step=27600.ckpt'
     
     trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
     discriminator = Efficient_U_DISC(trained_denoiser, config)
@@ -121,7 +124,7 @@ def main(args) :
     
     discriminator_trainer.fit(discriminator, datamodule)
     
-    # pdb.set_trace()
+    pdb.set_trace()
     
     # PHASE 3 : 
     print('''
@@ -161,9 +164,11 @@ if __name__ == '__main__' :
     parser = ArgumentParser()
     parser.add_argument('-bs', type=int, default=128)
     parser.add_argument('-acc', type=str, default='cuda')
+    parser.add_argument('-loc', type=str, default='colab') # or workstation 
     
     bs = parser.parse_args().bs
     accelerator = parser.parse_args().acc
+    loc = parser.parse_args().loc
     
     args = dict(bs = bs , accelerator = accelerator)
     main(args)
