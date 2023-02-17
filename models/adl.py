@@ -129,8 +129,8 @@ class Efficient_U(pl.LightningModule) : # denoiser
         # self.log('val_msssim', val_msssim)
 
         return val_loss 
+         
     
-     
     def configure_optimizers(self):
         lr = self.lr
 

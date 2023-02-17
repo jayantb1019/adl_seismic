@@ -58,6 +58,8 @@ def main(args) :
         
     if args['accelerator'] : 
         accelerator = args['accelerator']
+        
+    
     
     modelSummaryCb = RichModelSummary(max_depth=-1)
     tqdmProgressCb = TQDMProgressBar(refresh_rate=20)
@@ -70,8 +72,6 @@ def main(args) :
     adl_logger = TensorBoardLogger('../lightning_logs', name='adl', log_graph=True, version = experiment_version)
     
     datamodule = FaciesMarkDataModule(config['train']['data'])
-    
-    
     
     
     
@@ -97,66 +97,72 @@ def main(args) :
     
     # denoiser_trainer.fit(denoiser, datamodule)
     
-    
-    # PHASE 2 : 
-    print('''
-          =====================
-          DISCRIMINATOR WARM UP
-          =====================
-          ''')
+    # results = denoiser_trainer.test(denoiser, datamodule)
 
-    discriminator_trainer = pl.Trainer(
-        accelerator = accelerator,
-        devices=1, 
-        callbacks = [modelSummaryCb, tqdmProgressCb ],
-        logger = discriminator_logger,
-        max_epochs=config['train']['discriminator']['epochs'], 
-        fast_dev_run=fast_dev_run, 
-         enable_model_summary=False,      
-         # precision=32   
-    )
+    # print(results)
+    
+    # pdb.set_trace()
+    
+    # # PHASE 2 : 
+    # print('''
+    #       =====================
+    #       DISCRIMINATOR WARM UP
+    #       =====================
+    #       ''')
+
+    # discriminator_trainer = pl.Trainer(
+    #     accelerator = accelerator,
+    #     devices=1, 
+    #     callbacks = [modelSummaryCb, tqdmProgressCb ],
+    #     logger = discriminator_logger,
+    #     max_epochs=config['train']['discriminator']['epochs'], 
+    #     fast_dev_run=fast_dev_run, 
+    #      enable_model_summary=False,      
+    #      # precision=32   
+    # )
     
     denoiser_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_16_02_2023_17_44_28_no_bn/checkpoints/epoch=49-step=27600.ckpt'
     
-    trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
-    discriminator = Efficient_U_DISC(trained_denoiser, config)
+    # trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
+    # discriminator = Efficient_U_DISC(trained_denoiser, config)
     
     
-    discriminator_trainer.fit(discriminator, datamodule)
+    # discriminator_trainer.fit(discriminator, datamodule)
     
     pdb.set_trace()
+    # # pdb.set_trace()
     
-    # PHASE 3 : 
-    print('''
-          =====================
-              ADL TRAINING
-          =====================
-          ''')
+    # # PHASE 3 : 
+    # print('''
+    #       =====================
+    #           ADL TRAINING
+    #       =====================
+    #       ''')
     
-    adl_trainer = pl.Trainer(
-        accelerator = accelerator,
-        devices=1, 
-        callbacks = [modelSummaryCb, tqdmProgressCb ],
-        logger = adl_logger,
-        max_epochs=config['train']['ADL']['epochs'], 
-        fast_dev_run=fast_dev_run, 
-        enable_model_summary=False,        
-        # precision=32 
-    )
-    denoiser_checkpoint_path = '/content/denoiser_20230214_tanh_epoch=15-step=8832.ckpt'
-    discriminator_checkpoint_path = '/content/discriminator_20230214_epoch=10-step=6072.ckpt'
+    # adl_trainer = pl.Trainer(
+    #     accelerator = accelerator,
+    #     devices=1, 
+    #     callbacks = [modelSummaryCb, tqdmProgressCb ],
+    #     logger = adl_logger,
+    #     max_epochs=config['train']['ADL']['epochs'], 
+    #     fast_dev_run=fast_dev_run, 
+    #     enable_model_summary=False,        
+    #     # precision=32 
+    # )
+    # denoiser_checkpoint_path = '/content/denoiser_20230214_tanh_epoch=15-step=8832.ckpt'
+    # discriminator_checkpoint_path = '/content/discriminator_20230214_epoch=10-step=6072.ckpt'
     
-    # denoiser_checkpoint_path = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/lightning_logs/denoiser_20230213_epoch=49-step=27600.ckpt'
-    # discriminator_checkpoint_path = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/lightning_logs/discriminator_20230213_epoch=49-step=27600.ckpt'
+    # # denoiser_checkpoint_path = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/lightning_logs/denoiser_20230213_epoch=49-step=27600.ckpt'
+    # # discriminator_checkpoint_path = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/lightning_logs/discriminator_20230213_epoch=49-step=27600.ckpt'
     
-    trained_denoiser = Efficient_U.load_from_checkpoint(checkpoint_path = denoiser_checkpoint_path, config = config)
-    trained_discriminator = Efficient_U_DISC.load_from_checkpoint(checkpoint_path = discriminator_checkpoint_path, model=trained_denoiser, config=config)
+    # trained_denoiser = Efficient_U.load_from_checkpoint(checkpoint_path = denoiser_checkpoint_path, config = config)
+    # trained_discriminator = Efficient_U_DISC.load_from_checkpoint(checkpoint_path = discriminator_checkpoint_path, model=trained_denoiser, config=config)
 
-    adl = ADL(trained_denoiser, trained_discriminator, config)
+    # adl = ADL(trained_denoiser, trained_discriminator, config)
     
-    adl_trainer.fit(adl, datamodule) 
+    # adl_trainer.fit(adl, datamodule) 
     
-    pdb.set_trace()
+    # pdb.set_trace()
     
 
 if __name__ == '__main__' : 
@@ -170,5 +176,5 @@ if __name__ == '__main__' :
     accelerator = parser.parse_args().acc
     loc = parser.parse_args().loc
     
-    args = dict(bs = bs , accelerator = accelerator)
+    args = dict(bs = bs , accelerator = accelerator, loc=loc)
     main(args)
