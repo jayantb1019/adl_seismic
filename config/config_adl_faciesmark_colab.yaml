@@ -27,7 +27,7 @@ train :
       test_labels_path : test_once/test2_labels.npy
   
   ADL : 
-    epochs : 50
+    epochs : 15
     print_model : false 
     lr : 0.0005  # research paper mentions learning rate applicable to denoiser i think. ''We used the Adam algorithm [19] as an optimizer with the 
     optimizer : Adam         # ReduceLRonPlateau scheduler [47].The optimization started with a learning rate of 10 −4 
@@ -40,7 +40,7 @@ train :
   
   denoiser : 
     model : Efficient_Unet
-    epochs : 50 
+    epochs : 15 
     lr : 0.0001
     optimizer: Adam
     lr_scheduler : 
@@ -50,7 +50,7 @@ train :
 
   discriminator:
     model : Efficient_Unet_disc
-    epochs : 50
+    epochs : 15
     lr: 0.0001
     optimizer: Adam
     negative_slope: 0.1
