@@ -160,7 +160,6 @@ def main(args) :
     denoiser_checkpoint_path = '/content/denoiser_20230214_tanh_epoch=15-step=8832.ckpt'
     discriminator_checkpoint_path = '/content/discriminator_20230214_epoch=10-step=6072.ckpt'
     
-    pdb.set_trace()
     
     # denoiser_checkpoint_path = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/lightning_logs/denoiser_20230213_epoch=49-step=27600.ckpt'
     # discriminator_checkpoint_path = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/lightning_logs/discriminator_20230213_epoch=49-step=27600.ckpt'
