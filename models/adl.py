@@ -335,6 +335,20 @@ class ADL(pl.LightningModule) : # Full ADL model
         if optimizer_idx == 0 : # denoiser 
             
             denoised, denoised_2, denoised_4 = self.denoiser(noisy)
+            
+            # gan loss
+            fake_bridge, fake_x0, fake_x2, fake_x4 = self.discriminator(noisy)
+            
+            fake_ravel =  torch.concat([torch.reshape(fake_bridge, (B,-1)),
+                                torch.reshape(fake_x0, (B,-1)), 
+                                torch.reshape(fake_x2, (B,-1)),
+                                torch.reshape(fake_x4, (B,-1))
+                                ], axis=-1)
+            
+            fake_loss = torch.mean(RELU(1.0 + fake_ravel))
+            
+            # model loss
+            
             clean_2, clean_4 = self._rescale_gt_2d(clean)
             
             l1_loss_1 = Loss_L1(clean, denoised)
@@ -352,8 +366,10 @@ class ADL(pl.LightningModule) : # Full ADL model
             self.log('denoiser_train_l1_loss', l1_loss_1 + l1_loss_2 + l1_loss_4)
             self.log('denoiser_train_pyr_loss', pyr_loss_1 + pyr_loss_2 + pyr_loss_4)
             self.log('denoiser_train_hist_loss', hist_loss_1 + hist_loss_2 + hist_loss_4)
+            self.log('denoiser_gan_loss', fake_loss)
             
-            train_loss = l1_loss_1 + l1_loss_2 + l1_loss_4 + pyr_loss_1 + pyr_loss_2 + pyr_loss_4 + hist_loss_1 + hist_loss_2 + hist_loss_4
+            train_loss = l1_loss_1 + l1_loss_2 + l1_loss_4 + pyr_loss_1 + pyr_loss_2 + pyr_loss_4 + hist_loss_1 + hist_loss_2 + hist_loss_4 + fake_loss
+            
             self.log('denoiser_train_loss', train_loss, prog_bar=True)
             
             return train_loss
