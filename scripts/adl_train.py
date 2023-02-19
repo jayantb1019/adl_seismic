@@ -76,60 +76,65 @@ def main(args) :
     
     
     #PHASE 1 : 
-    # print('''
-    #       ================
-    #       DENOISER WARM UP
-    #       ================
-    #       ''')
-    # denoiser = Efficient_U(config)
+    print('''
+          ================
+          DENOISER WARM UP
+          ================
+          ''')
+    denoiser = Efficient_U(config)
     
-    # denoiser_trainer = pl.Trainer(
-    #     accelerator = accelerator,
-    #     devices=1, 
-    #     callbacks = [modelSummaryCb, tqdmProgressCb ],
-    #     logger = denoiser_logger,
-    #     max_epochs=config['train']['denoiser']['epochs'], 
-    #     fast_dev_run=fast_dev_run,          
-    #     enable_model_summary=False,
-    #     # precision=32
-    # )
+    denoiser_trainer = pl.Trainer(
+        accelerator = accelerator,
+        devices=1, 
+        callbacks = [modelSummaryCb, tqdmProgressCb ],
+        logger = denoiser_logger,
+        max_epochs=config['train']['denoiser']['epochs'], 
+        fast_dev_run=fast_dev_run,          
+        enable_model_summary=False,
+        # precision=32
+    )
     
     
-    # denoiser_trainer.fit(denoiser, datamodule)
+    denoiser_trainer.fit(denoiser, datamodule)
     
     # results = denoiser_trainer.test(denoiser, datamodule)
 
     # print(results)
     
-    # pdb.set_trace()
     
-    # # PHASE 2 : 
-    # print('''
-    #       =====================
-    #       DISCRIMINATOR WARM UP
-    #       =====================
-    #       ''')
+    
+    # PHASE 2 : 
+    print('''
+          =====================
+          DISCRIMINATOR WARM UP
+          =====================
+          ''')
 
-    # discriminator_trainer = pl.Trainer(
-    #     accelerator = accelerator,
-    #     devices=1, 
-    #     callbacks = [modelSummaryCb, tqdmProgressCb ],
-    #     logger = discriminator_logger,
-    #     max_epochs=config['train']['discriminator']['epochs'], 
-    #     fast_dev_run=fast_dev_run, 
-    #      enable_model_summary=False,      
-    #      # precision=32   
-    # )
+    discriminator_trainer = pl.Trainer(
+        accelerator = accelerator,
+        devices=1, 
+        callbacks = [modelSummaryCb, tqdmProgressCb ],
+        logger = discriminator_logger,
+        max_epochs=config['train']['discriminator']['epochs'], 
+        fast_dev_run=fast_dev_run, 
+         enable_model_summary=False,      
+         # precision=32   
+    )
     
     # denoiser_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_16_02_2023_17_44_28_no_bn/checkpoints/epoch=49-step=27600.ckpt'
     
-    # trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
-    # discriminator = Efficient_U_DISC(trained_denoiser, config)
+    pdb.set_trace()
+    
+    denoiser_checkpoint_path = ''
     
     
-    # discriminator_trainer.fit(discriminator, datamodule)
     
-    # pdb.set_trace()
+    trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
+    discriminator = Efficient_U_DISC(trained_denoiser, config)
+    
+    
+    discriminator_trainer.fit(discriminator, datamodule)
+    
     # pdb.set_trace()
     
     # PHASE 3 : 
@@ -149,6 +154,9 @@ def main(args) :
         enable_model_summary=False,        
         # precision=32 
     )
+    
+    pdb.set_trace()
+    
     denoiser_checkpoint_path = '/content/denoiser_20230214_tanh_epoch=15-step=8832.ckpt'
     discriminator_checkpoint_path = '/content/discriminator_20230214_epoch=10-step=6072.ckpt'
     
