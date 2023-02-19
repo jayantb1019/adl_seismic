@@ -338,7 +338,7 @@ class ADL(pl.LightningModule) : # Full ADL model
             
             # gan loss
             fake_bridge, fake_x0, fake_x2, fake_x4 = self.discriminator(noisy)
-            
+            B = noisy.shape[0]
             fake_ravel =  torch.concat([torch.reshape(fake_bridge, (B,-1)),
                                 torch.reshape(fake_x0, (B,-1)), 
                                 torch.reshape(fake_x2, (B,-1)),
