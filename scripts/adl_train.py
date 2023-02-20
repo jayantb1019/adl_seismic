@@ -59,8 +59,10 @@ def main(args) :
     if args['accelerator'] : 
         accelerator = args['accelerator']
         
-    
-    
+
+    limit_train_batches = args['lt']
+    limit_val_batches = args['lv']
+
     modelSummaryCb = RichModelSummary(max_depth=-1)
     tqdmProgressCb = TQDMProgressBar(refresh_rate=20)
     
@@ -76,26 +78,28 @@ def main(args) :
     
     
     #PHASE 1 : 
-    # print('''
-    #       ================
-    #       DENOISER WARM UP
-    #       ================
-    #       ''')
-    # denoiser = Efficient_U(config)
+    print('''
+          ================
+          DENOISER WARM UP
+          ================
+          ''')
+    denoiser = Efficient_U(config)
     
-    # denoiser_trainer = pl.Trainer(
-    #     accelerator = accelerator,
-    #     devices=1, 
-    #     callbacks = [modelSummaryCb, tqdmProgressCb ],
-    #     logger = denoiser_logger,
-    #     max_epochs=config['train']['denoiser']['epochs'], 
-    #     fast_dev_run=fast_dev_run,          
-    #     enable_model_summary=False,
-    #     # precision=32
-    # )
+    denoiser_trainer = pl.Trainer(
+        accelerator = accelerator,
+        devices=1, 
+        callbacks = [modelSummaryCb, tqdmProgressCb ],
+        logger = denoiser_logger,
+        max_epochs=config['train']['denoiser']['epochs'], 
+        fast_dev_run=fast_dev_run,          
+        enable_model_summary=False,
+        limit_train_batches = limit_train_batches, 
+        limit_val_batches = limit_val_batches
+        # precision=32
+    )
     
     
-    # denoiser_trainer.fit(denoiser, datamodule)
+    denoiser_trainer.fit(denoiser, datamodule)
     
     # results = denoiser_trainer.test(denoiser, datamodule)
 
@@ -104,36 +108,38 @@ def main(args) :
     
     
     # PHASE 2 : 
-    # print('''
-    #       =====================
-    #       DISCRIMINATOR WARM UP
-    #       =====================
-    #       ''')
+    print('''
+          =====================
+          DISCRIMINATOR WARM UP
+          =====================
+          ''')
 
-    # discriminator_trainer = pl.Trainer(
-    #     accelerator = accelerator,
-    #     devices=1, 
-    #     callbacks = [modelSummaryCb, tqdmProgressCb ],
-    #     logger = discriminator_logger,
-    #     max_epochs=config['train']['discriminator']['epochs'], 
-    #     fast_dev_run=fast_dev_run, 
-    #      enable_model_summary=False,      
-    #      # precision=32   
-    # )
+    discriminator_trainer = pl.Trainer(
+        accelerator = accelerator,
+        devices=1, 
+        callbacks = [modelSummaryCb, tqdmProgressCb ],
+        logger = discriminator_logger,
+        max_epochs=config['train']['discriminator']['epochs'], 
+        fast_dev_run=fast_dev_run, 
+         enable_model_summary=False,      
+        limit_train_batches = limit_train_batches, 
+        limit_val_batches = limit_val_batches
+         # precision=32   
+    )
     
-    # # denoiser_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_16_02_2023_17_44_28_no_bn/checkpoints/epoch=49-step=27600.ckpt'
-    
-    # pdb.set_trace()
-    
-    # denoiser_checkpoint_path = ''
+    # denoiser_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_16_02_2023_17_44_28_no_bn/checkpoints/epoch=49-step=27600.ckpt'
     
     
     
-    # trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
-    # discriminator = Efficient_U_DISC(trained_denoiser, config)
+    denoiser_checkpoint_path = ''
+    
+    pdb.set_trace()
+    
+    trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
+    discriminator = Efficient_U_DISC(trained_denoiser, config)
     
     
-    # discriminator_trainer.fit(discriminator, datamodule)
+    discriminator_trainer.fit(discriminator, datamodule)
     
     # pdb.set_trace()
     
@@ -151,7 +157,9 @@ def main(args) :
         logger = adl_logger,
         max_epochs=config['train']['ADL']['epochs'], 
         fast_dev_run=fast_dev_run, 
-        enable_model_summary=False,        
+        enable_model_summary=False,       
+        limit_train_batches = limit_train_batches, 
+        limit_val_batches = limit_val_batches                  
         # precision=32 
     )
     
@@ -160,6 +168,7 @@ def main(args) :
     denoiser_checkpoint_path = '/content/denoiser_20230214_tanh_epoch=15-step=8832.ckpt'
     discriminator_checkpoint_path = '/content/discriminator_20230214_epoch=10-step=6072.ckpt'
     
+    pdb.set_trace()
     
     # denoiser_checkpoint_path = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/lightning_logs/denoiser_20230213_epoch=49-step=27600.ckpt'
     # discriminator_checkpoint_path = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/lightning_logs/discriminator_20230213_epoch=49-step=27600.ckpt'
@@ -180,10 +189,15 @@ if __name__ == '__main__' :
     parser.add_argument('-bs', type=int, default=128)
     parser.add_argument('-acc', type=str, default='cuda')
     parser.add_argument('-loc', type=str, default='colab') # or workstation 
+    parser.add_argument('-lt', type=float, default = 1) # limit train batches
+    parser.add_argument('-lv', type=float, default = 1) # limit val batches
+
     
     bs = parser.parse_args().bs
     accelerator = parser.parse_args().acc
-    loc = parser.parse_args().loc
+    loc = parser.parse_args().loc 
+    lt = parser.parse_args().lt
+    lv = parser.parse_args().lv
     
-    args = dict(bs = bs , accelerator = accelerator, loc=loc)
+    args = dict(bs = bs , accelerator = accelerator, loc=loc , lt = lt, lv = lv)
     main(args)

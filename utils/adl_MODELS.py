@@ -148,7 +148,7 @@ class Disc_Transformer(nn.Module):
     # x = F.leaky_relu(x, negative_slope=self.negative_slope, inplace=False)
     x = F.tanh(x)
     x = self.classifier(x)
-    x = F.tanh(x)
+    # x = F.tanh(x)
     return x
 
 
@@ -228,35 +228,35 @@ class Efficient_Unet(nn.Module):
 class Efficient_Unet_disc(nn.Module):
   def __init__(self, in_ch, out_ch, negative_slope, filter_base=16, bias=False):
     super(Efficient_Unet_disc, self).__init__()
-    f1 = filter_base
-    f2 = 2*f1
-    f3 = 2*f2
-    f4 = 2*f3
+    f1 = 3 * filter_base
+    f2 = 4*filter_base
+    f3 = 5*filter_base
+    f4 = 5*filter_base
     f5 = f4
-    fb = f5
+    fb = 6 * filter_base
 
     #Encoder1
-    self.down_0 = Residual_block(in_ch, f1, stride=1) #[B,C,W,H]-->[B,f1,W,H]
+    self.down_0 = Residual_block(in_ch, f1, stride=1) #[B,C,W,H]-->[B,f1,W,H] 48
 
     #Encoder2
-    self.down_1 = Residual_block(f1, f2, stride=2) #[B,f1,W,H]-->[B,f2,W/2,H/2]
+    self.down_1 = Residual_block(f1, f2, stride=2) #[B,f1,W,H]-->[B,f2,W/2,H/2] 64
 
     #Encoder3
-    self.down_2 = Residual_block(f2, f3, stride=2) #[B,f2,W/2,H/2]-->[B,f3,W/4,H/4]
+    self.down_2 = Residual_block(f2, f3, stride=2) #[B,f2,W/2,H/2]-->[B,f3,W/4,H/4] 80
 
     #Bridge
-    self.bridge = Residual_block(f3, fb, stride=2) #[B,f3,W/4,H/4]-->[B,fb,W/8,H/8]
+    self.bridge = Residual_block(f3, fb, stride=2) #[B,f3,W/4,H/4]-->[B,fb,W/8,H/8] 96
     self.bridge_map = nn.Conv2d(fb, fb, kernel_size=1, stride=1, padding =(0,0), bias=bias)
     
 
     #Decoder1
-    self.Decoder_block1 = Decoder_block(fb, f3, f3) #[B,fb,W/8,H/8]-->[B,f3,W/4,H/4]
+    self.Decoder_block1 = Decoder_block(fb, f3, f3) #[B,fb,W/8,H/8]-->[B,f3,W/4,H/4] 80
 
     #Decoder2
-    self.Decoder_block2 = Decoder_block(f3, f2, f2) #[B,f3-->[B,f2,W/2,H/2]
+    self.Decoder_block2 = Decoder_block(f3, f2, f2) #[B,f3-->[B,f2,W/2,H/2] 64
 
     #Decoder3
-    self.Decoder_block3 = Decoder_block(f2, f1, f1) #[B,f2,W/4,H/4]-->[B,f1,W,H]
+    self.Decoder_block3 = Decoder_block(f2, f1, f1) #[B,f2,W/4,H/4]-->[B,f1,W,H] 48
 
 
     # Transformers

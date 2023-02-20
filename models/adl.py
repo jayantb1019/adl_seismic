@@ -17,7 +17,8 @@ from adl_loss import Loss_L1 , Loss_PYR, Loss_Hist
 
 #TODO : Change the milestones (list of epoch indices) in MultiStepLR schedulers.
 
-RELU = nn.ReLU(inplace=False)
+# RELU = nn.ReLU(inplace=False)
+SIGMOID = nn.Sigmoid()
 # TANH = nn.Tanh()
 
 class Efficient_U(pl.LightningModule) : # denoiser
@@ -200,25 +201,26 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         gt_bridge, gt_x0, gt_x2, gt_x4 = self.disc_model(clean)
         B = clean.shape[0]
         
-        true_ravel = torch.concat([torch.reshape(gt_bridge, (B,-1)),
+        true_ravel = torch.concat([
                                 torch.reshape(gt_x0, (B,-1)), 
                                 torch.reshape(gt_x2, (B,-1)),
                                 torch.reshape(gt_x4, (B,-1))
                                 ], axis=-1)
-        loss_true = torch.mean(RELU(1.0 - true_ravel)) 
+        loss_true = torch.mean(SIGMOID(1.0 - true_ravel))  + torch.mean(SIGMOID(1.0 - torch.reshape(gt_bridge, (B,-1))))
     
     
         y = noisy
-        y_bridge, y_pred, y_pred_x2, y_pred_x4 = self.disc_model(self.model(y)[0])
+        y_bridge, y_pred, y_pred_x2, y_pred_x4 = self.disc_model(self.model(y)[0]) # denoised
         B = y.shape[0]
 
         # Compute the loss for the true sample
-        pred_ravel = torch.concat([torch.reshape(y_bridge, (B,-1)),
+        pred_ravel = torch.concat([
                             torch.reshape(y_pred, (B,-1)), 
                             torch.reshape(y_pred_x2, (B,-1)),
                             torch.reshape(y_pred_x4, (B,-1))
                             ], axis=-1)
-        loss_pred = torch.mean(RELU(1.0 + pred_ravel)) 
+        
+        loss_pred = torch.mean(SIGMOID(1.0 + pred_ravel))  + torch.mean(SIGMOID(1.0 + torch.reshape(y_bridge, (B,-1))))
         
         loss = (loss_true + loss_pred)/2
         
@@ -238,12 +240,13 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         gt_bridge, gt_x0, gt_x2, gt_x4 = self.disc_model(clean)
         B = clean.shape[0]
         
-        true_ravel = torch.concat([torch.reshape(gt_bridge, (B,-1)),
+        true_ravel = torch.concat([
                                 torch.reshape(gt_x0, (B,-1)), 
                                 torch.reshape(gt_x2, (B,-1)),
                                 torch.reshape(gt_x4, (B,-1))
                                 ], axis=-1)
-        loss_true = torch.mean(RELU(1.0 - true_ravel)) 
+
+        loss_true = torch.mean(SIGMOID(1.0 - true_ravel))  + torch.mean(SIGMOID(1.0 - torch.reshape(gt_bridge, (B,-1))))
     
     
         y = noisy
@@ -251,12 +254,13 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         B = y.shape[0]
 
         # Compute the loss for the true sample
-        pred_ravel = torch.concat([torch.reshape(y_bridge, (B,-1)),
+        pred_ravel = torch.concat([
                             torch.reshape(y_pred, (B,-1)), 
                             torch.reshape(y_pred_x2, (B,-1)),
                             torch.reshape(y_pred_x4, (B,-1))
                             ], axis=-1)
-        loss_pred = torch.mean(RELU(1.0 + pred_ravel)) 
+
+        loss_pred = torch.mean(SIGMOID(1.0 + pred_ravel))  + torch.mean(SIGMOID(1.0 + torch.reshape(y_bridge, (B,-1))))
         
         loss = (loss_true + loss_pred)/2
         
@@ -339,7 +343,7 @@ class ADL(pl.LightningModule) : # Full ADL model
             # gan loss
             fake_bridge, fake_x0, fake_x2, fake_x4 = self.discriminator(denoised)
             B = noisy.shape[0]
-            fake_ravel =  torch.concat([torch.reshape(fake_bridge, (B,-1)),
+            fake_ravel =  torch.concat([
                                 torch.reshape(fake_x0, (B,-1)), 
                                 torch.reshape(fake_x2, (B,-1)),
                                 torch.reshape(fake_x4, (B,-1))
@@ -347,7 +351,7 @@ class ADL(pl.LightningModule) : # Full ADL model
             
             # fake_loss = torch.mean(RELU(1.0 - fake_ravel))
             
-            fake_loss = torch.mean(torch.nn.functional.tanh(1.0 - fake_ravel))
+            fake_loss = torch.mean(SIGMOID(1.0 - fake_ravel)) + torch.mean(SIGMOID(1.0 - torch.reshape(fake_bridge, (B,-1))))
             
             # model loss
             
@@ -390,21 +394,21 @@ class ADL(pl.LightningModule) : # Full ADL model
             fake_bridge, fake_x0, fake_x2 , fake_x4 = self.discriminator(fake.detach())
             
             
-            real_ravel =  torch.concat([torch.reshape(real_bridge, (B,-1)),
+            real_ravel =  torch.concat([
                                 torch.reshape(real_x0, (B,-1)), 
                                 torch.reshape(real_x2, (B,-1)),
                                 torch.reshape(real_x4, (B,-1))
                                 ], axis=-1)
             
-            real_loss = torch.mean(torch.nn.functional.tanh(1.0 - real_ravel))
+            real_loss = torch.mean(SIGMOID(1.0 - real_ravel)) + torch.mean(SIGMOID(1.0 - torch.reshape(real_bridge, (B,-1))))
             
-            fake_ravel =  torch.concat([torch.reshape(fake_bridge, (B,-1)),
+            fake_ravel =  torch.concat([
                                 torch.reshape(fake_x0, (B,-1)), 
                                 torch.reshape(fake_x2, (B,-1)),
                                 torch.reshape(fake_x4, (B,-1))
                                 ], axis=-1)
             
-            fake_loss = torch.mean(torch.nn.functional.tanh(1.0 + fake_ravel))
+            fake_loss = torch.mean(SIGMOID(1.0 + fake_ravel)) + torch.mean(SIGMOID(1 + torch.reshape(fake_bridge, (B,-1))))
             
             
             loss = (real_loss + fake_loss) / 2 
@@ -427,6 +431,19 @@ class ADL(pl.LightningModule) : # Full ADL model
         denoised, denoised_2, denoised_4 = self.denoiser(noisy)
         clean_2, clean_4 = self._rescale_gt_2d(clean)
         
+        # gan loss
+        fake_bridge, fake_x0, fake_x2, fake_x4 = self.discriminator(denoised)
+        B = noisy.shape[0]
+        fake_ravel =  torch.concat([
+                            torch.reshape(fake_x0, (B,-1)), 
+                            torch.reshape(fake_x2, (B,-1)),
+                            torch.reshape(fake_x4, (B,-1))
+                            ], axis=-1)
+        
+        # fake_loss = torch.mean(RELU(1.0 - fake_ravel))
+        
+        fake_loss = torch.mean(SIGMOID(1.0 - fake_ravel)) + torch.mean(SIGMOID(1.0 - torch.reshape(fake_bridge, (B,-1))))
+
         l1_loss_1 = Loss_L1(clean, denoised)
         l1_loss_2 = Loss_L1(clean_2, denoised_2)
         l1_loss_4 = Loss_L1(clean_4, denoised_4)
@@ -443,7 +460,8 @@ class ADL(pl.LightningModule) : # Full ADL model
         self.log('denoiser_val_pyr_loss', pyr_loss_1 + pyr_loss_2 + pyr_loss_4)
         self.log('denoiser_val_hist_loss', hist_loss_1 + hist_loss_2 + hist_loss_4)
         
-        val_loss = l1_loss_1 + l1_loss_2 + l1_loss_4 + pyr_loss_1 + pyr_loss_2 + pyr_loss_4 + hist_loss_1 + hist_loss_2 + hist_loss_4
+        val_loss = l1_loss_1 + l1_loss_2 + l1_loss_4 + pyr_loss_1 + pyr_loss_2 + pyr_loss_4 + hist_loss_1 + hist_loss_2 + hist_loss_4 + fake_loss   
+        
         self.log('denoiser_val_loss', val_loss, prog_bar=True)
         
         return val_loss
