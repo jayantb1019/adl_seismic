@@ -148,7 +148,7 @@ class Disc_Transformer(nn.Module):
     # x = F.leaky_relu(x, negative_slope=self.negative_slope, inplace=False)
     x = F.tanh(x)
     x = self.classifier(x)
-    x = F.sigmoid(x)
+    x = F.tanh(x)
     return x
 
 
