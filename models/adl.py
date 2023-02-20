@@ -372,6 +372,8 @@ class ADL(pl.LightningModule) : # Full ADL model
             
             self.log('denoiser_train_loss', train_loss, prog_bar=True)
             
+            pdb.set_trace()
+            
             return train_loss
             
         if optimizer_idx == 1 : # discriminator
@@ -406,6 +408,7 @@ class ADL(pl.LightningModule) : # Full ADL model
             loss = (real_loss + fake_loss) / 2 
             
             self.log('disc_train_loss', loss, prog_bar = True)
+            pdb.set_trace()
             
             return loss
 
