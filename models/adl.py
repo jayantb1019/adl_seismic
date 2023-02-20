@@ -345,7 +345,7 @@ class ADL(pl.LightningModule) : # Full ADL model
                                 torch.reshape(fake_x4, (B,-1))
                                 ], axis=-1)
             
-            fake_loss = torch.mean((1.0 - fake_ravel))
+            fake_loss = torch.mean(RELU(1.0 - fake_ravel))
             
             # model loss
             
@@ -383,7 +383,7 @@ class ADL(pl.LightningModule) : # Full ADL model
             B = fake.shape[0]
 
             real_bridge, real_x0, real_x2, real_x4 = self.discriminator(real)
-            fake_bridge, fake_x0, fake_x2 , fake_x4 = self.discriminator(fake)
+            fake_bridge, fake_x0, fake_x2 , fake_x4 = self.discriminator(fake.detach())
             
             
             real_ravel =  torch.concat([torch.reshape(real_bridge, (B,-1)),
@@ -392,7 +392,7 @@ class ADL(pl.LightningModule) : # Full ADL model
                                 torch.reshape(real_x4, (B,-1))
                                 ], axis=-1)
             
-            real_loss = torch.mean((1.0 - real_ravel))
+            real_loss = torch.mean(RELU(1.0 - real_ravel))
             
             fake_ravel =  torch.concat([torch.reshape(fake_bridge, (B,-1)),
                                 torch.reshape(fake_x0, (B,-1)), 
@@ -400,7 +400,7 @@ class ADL(pl.LightningModule) : # Full ADL model
                                 torch.reshape(fake_x4, (B,-1))
                                 ], axis=-1)
             
-            fake_loss = torch.mean((1.0 + fake_ravel))
+            fake_loss = torch.mean(RELU(1.0 + fake_ravel))
             
             
             loss = (real_loss + fake_loss) / 2 
