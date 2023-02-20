@@ -345,7 +345,9 @@ class ADL(pl.LightningModule) : # Full ADL model
                                 torch.reshape(fake_x4, (B,-1))
                                 ], axis=-1)
             
-            fake_loss = torch.mean(RELU(1.0 - fake_ravel))
+            # fake_loss = torch.mean(RELU(1.0 - fake_ravel))
+            
+            fake_loss = torch.mean(torch.nn.functional.tanh(1.0 - fake_ravel))
             
             # model loss
             
@@ -372,7 +374,7 @@ class ADL(pl.LightningModule) : # Full ADL model
             
             self.log('denoiser_train_loss', train_loss, prog_bar=True)
             
-            pdb.set_trace()
+            # pdb.set_trace()
             
             return train_loss
             
@@ -394,7 +396,7 @@ class ADL(pl.LightningModule) : # Full ADL model
                                 torch.reshape(real_x4, (B,-1))
                                 ], axis=-1)
             
-            real_loss = torch.mean(RELU(1.0 - real_ravel))
+            real_loss = torch.mean(torch.nn.functional.tanh(1.0 - real_ravel))
             
             fake_ravel =  torch.concat([torch.reshape(fake_bridge, (B,-1)),
                                 torch.reshape(fake_x0, (B,-1)), 
@@ -402,13 +404,13 @@ class ADL(pl.LightningModule) : # Full ADL model
                                 torch.reshape(fake_x4, (B,-1))
                                 ], axis=-1)
             
-            fake_loss = torch.mean(RELU(1.0 + fake_ravel))
+            fake_loss = torch.mean(torch.nn.functional.tanh(1.0 + fake_ravel))
             
             
             loss = (real_loss + fake_loss) / 2 
             
             self.log('disc_train_loss', loss, prog_bar = True)
-            pdb.set_trace()
+            # pdb.set_trace()
             
             return loss
 
