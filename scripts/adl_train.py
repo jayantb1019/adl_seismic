@@ -42,8 +42,9 @@ def get_config(config_path) :
     f.close()
     return config
 
-def get_checkpoint(model_type, experiment_version) : 
-    base_folder = '/local1/workspace/adl_seismic/lightning_logs'
+def get_checkpoint(model_type, experiment_version, config) : 
+    
+    base_folder = config['dir']['logs_folder']
     folder_path = os.path.join(base_folder, model_type, experiment_version, 'checkpoints')
 
     ckpt = glob(folder_path + '/*.ckpt')
@@ -161,11 +162,11 @@ def main(args) :
     #      # precision=32   
     # )
     
-    denoiser_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_20_02_2023_12_50_02/checkpoints/epoch=49-step=2750.ckpt'
+    # denoiser_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_20_02_2023_12_50_02/checkpoints/epoch=49-step=2750.ckpt'
     
     
     
-    # denoiser_checkpoint_path = get_checkpoint('denoiser',experiment_version)
+    denoiser_checkpoint_path = get_checkpoint('denoiser',experiment_version, config)
     
     # pdb.set_trace()
     
@@ -199,8 +200,8 @@ def main(args) :
     
     
     
-    # denoiser_checkpoint_path = get_checkpoint('denoiser', experiment_version)
-    # discriminator_checkpoint_path = get_checkpoint('discriminator', experiment_version)
+    # denoiser_checkpoint_path = get_checkpoint('denoiser', experiment_version, config)
+    # discriminator_checkpoint_path = get_checkpoint('discriminator', experiment_version, config)
     
     # pdb.set_trace()
     
@@ -216,7 +217,7 @@ def main(args) :
     adl_trainer.fit(adl, datamodule) 
     adl_trainer.test(adl, datamodule) 
     
-    pdb.set_trace()
+    # pdb.set_trace()
     
 
 if __name__ == '__main__' : 

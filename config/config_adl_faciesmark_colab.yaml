@@ -25,11 +25,12 @@ train :
       train_labels_path : train/train_labels.npy
       val_labels_path : test_once/test1_labels.npy
       test_labels_path : test_once/test2_labels.npy
+      logs_folder : /content/adl_seismic/lightning_logs
   
   ADL : 
-    epochs : 5
+    epochs : 50
     print_model : false 
-    lr : 0.0005  # research paper mentions learning rate applicable to denoiser i think. ''We used the Adam algorithm [19] as an optimizer with the 
+    lr : 0.00005  # research paper mentions learning rate applicable to denoiser i think. ''We used the Adam algorithm [19] as an optimizer with the 
     optimizer : Adam         # ReduceLRonPlateau scheduler [47].The optimization started with a learning rate of 10 −4 
     lr_scheduler : 
       type : MultiStepLR 
@@ -40,7 +41,7 @@ train :
   
   denoiser : 
     model : Efficient_Unet
-    epochs : 5 
+    epochs : 50 
     lr : 0.0001
     optimizer: Adam
     lr_scheduler : 
@@ -50,7 +51,7 @@ train :
 
   discriminator:
     model : Efficient_Unet_disc
-    epochs : 5
+    epochs : 50
     lr: 0.0001
     optimizer: Adam
     negative_slope: 0.1
