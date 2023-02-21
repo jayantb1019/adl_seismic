@@ -123,7 +123,7 @@ class Transformer(nn.Module):
     return x
 
 # Transformer for discriminator
-class Disc_Transformer(nn.Module):
+class Disc_Transformer(nn.Module): # returns a pixel level classification
   def __init__(self, in_ch, out_ch, repeat, negative_slope= 0.01, stride=1, bias=False):
     super(Disc_Transformer,self).__init__()
 
@@ -139,7 +139,9 @@ class Disc_Transformer(nn.Module):
 
     self.negative_slope = negative_slope
     self.classifier = nn.Sequential(
-        nn.Conv2d(ch_tmp, out_ch, kernel_size=1,stride=1, bias=False),
+        nn.Conv2d(ch_tmp, out_ch, kernel_size=1,stride=1, bias=False), # pixel level classification
+        # nn.Sigmoid() # since our image range is tanh
+        nn.Tanh()
     )
 
 
@@ -226,7 +228,7 @@ class Efficient_Unet(nn.Module):
 
 
 class Efficient_Unet_disc(nn.Module):
-  def __init__(self, in_ch, out_ch, negative_slope, filter_base=16, bias=False):
+  def __init__(self, in_ch, out_ch, negative_slope, filter_base=8, bias=False):
     super(Efficient_Unet_disc, self).__init__()
     f1 = 3 * filter_base
     f2 = 4*filter_base
@@ -246,7 +248,9 @@ class Efficient_Unet_disc(nn.Module):
 
     #Bridge
     self.bridge = Residual_block(f3, fb, stride=2) #[B,f3,W/4,H/4]-->[B,fb,W/8,H/8] 96
-    self.bridge_map = nn.Conv2d(fb, fb, kernel_size=1, stride=1, padding =(0,0), bias=bias)
+    
+    self.bridge_map = nn.Conv2d(fb, fb, kernel_size=1, stride=1, padding =(0,0), bias=bias) # pixel level classification of the bridge
+    self.sigmoid = nn.Sigmoid()
     
 
     #Decoder1
@@ -278,6 +282,7 @@ class Efficient_Unet_disc(nn.Module):
     #Bridge
     b = self.bridge(s3)
     bridge_map = self.bridge_map(b)
+    # bridge_map = self.sigmoid(bridge_map) # since our image is in [-1,1] 
 
     #Decoder1
     x = self.Decoder_block1(b, s3)
