@@ -44,7 +44,7 @@ def get_config(config_path) :
 
 def get_checkpoint(model_type, experiment_version, config) : 
     
-    base_folder = config['dir']['logs_folder']
+    base_folder = config['train']['data']['dir']['logs_folder']
     folder_path = os.path.join(base_folder, model_type, experiment_version, 'checkpoints')
 
     ckpt = glob(folder_path + '/*.ckpt')
@@ -113,29 +113,29 @@ def main(args) :
     # pdb.set_trace()
 
     #PHASE 1 : 
-    print('''
-          ================
-          DENOISER WARM UP
-          ================
-          ''')
-    denoiser = Efficient_U(config)
+    # print('''
+    #       ================
+    #       DENOISER WARM UP
+    #       ================
+    #       ''')
+    # denoiser = Efficient_U(config)
     
-    denoiser_trainer = pl.Trainer(
-        accelerator = accelerator,
-        devices=1, 
-        callbacks = [modelSummaryCb, tqdmProgressCb ],
-        logger = denoiser_logger,
-        max_epochs=config['train']['denoiser']['epochs'], 
-        fast_dev_run=fast_dev_run,          
-        enable_model_summary=False,
-        limit_train_batches = limit_train_batches, 
-        limit_val_batches = limit_val_batches
-        # precision=32
-    )
+    # denoiser_trainer = pl.Trainer(
+    #     accelerator = accelerator,
+    #     devices=1, 
+    #     callbacks = [modelSummaryCb, tqdmProgressCb ],
+    #     logger = denoiser_logger,
+    #     max_epochs=config['train']['denoiser']['epochs'], 
+    #     fast_dev_run=fast_dev_run,          
+    #     enable_model_summary=False,
+    #     limit_train_batches = limit_train_batches, 
+    #     limit_val_batches = limit_val_batches
+    #     # precision=32
+    # )
     
     
-    denoiser_trainer.fit(denoiser, datamodule)
-    denoiser_trainer.test(denoiser, datamodule)
+    # denoiser_trainer.fit(denoiser, datamodule)
+    # denoiser_trainer.test(denoiser, datamodule)
     # results = denoiser_trainer.test(denoiser, datamodule)
 
     # print(results)
@@ -166,7 +166,8 @@ def main(args) :
     
     
     
-    denoiser_checkpoint_path = get_checkpoint('denoiser',experiment_version, config)
+    # denoiser_checkpoint_path = get_checkpoint('denoiser',experiment_version, config)
+    denoiser_checkpoint_path = '/content/drive/MyDrive/adl_seismic/lightning_logs/denoiser/adl_21_02_2023_15_09_14_best/checkpoints/epoch=49-step=27300.ckpt' # colab
     
     # pdb.set_trace()
     
