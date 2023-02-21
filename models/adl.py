@@ -196,7 +196,7 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         self.save_hyperparameters(ignore=['model', 'disc_model'])
         
         self.model = model # trained denoiser model
-        self.disc_model = Efficient_Unet_disc(in_ch=1, out_ch=1, negative_slope = self.negative_slope, filter_base = 16 , bias=False)
+        self.disc_model = Efficient_Unet_disc(in_ch=1, out_ch=1, negative_slope = self.negative_slope, filter_base = 8 , bias=False)
         
         self.example_input_array = torch.zeros(self.batch_size, 1, self.patch_size, self.patch_size)
         
