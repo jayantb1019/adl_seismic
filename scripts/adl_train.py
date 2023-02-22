@@ -94,8 +94,8 @@ def main(args) :
 
     # trial : 21.02.2023 just a denoiser test 
     # denoiser performance test # uncomment to run denoiser baseline
-    # denoiser_ckpt_path_test = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_20_02_2023_12_50_02/checkpoints/epoch=49-step=2750.ckpt'
-    # denoiser = Efficient_U(config).load_from_checkpoint(denoiser_ckpt_path_test)
+    denoiser_ckpt_path_test = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_20_02_2023_12_50_02/checkpoints/epoch=49-step=2750.ckpt'
+    trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_ckpt_path_test)
     # denoiser_trainer = pl.Trainer(
     #     accelerator = accelerator,
     #     devices=1, 
@@ -109,7 +109,7 @@ def main(args) :
     #     # precision=32
     # )
 
-    # denoiser_trainer.test(denoiser, datamodule)
+    # denoiser_trainer.test(trained_denoiser, datamodule)
     # pdb.set_trace()
 
     #PHASE 1 : 
@@ -119,7 +119,9 @@ def main(args) :
     #       ================
     #       ''')
     # denoiser = Efficient_U(config)
-    
+    # denoiser_checkpoint_path = '/content/drive/MyDrive/adl_seismic/lightning_logs/denoiser/adl_21_02_2023_15_09_14_best/checkpoints/epoch=49-step=27300.ckpt' # colab
+    # denoiser_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_21_02_2023_19_23_55/checkpoints/epoch=49-step=27300.ckpt' # workstation
+    # trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
     # denoiser_trainer = pl.Trainer(
     #     accelerator = accelerator,
     #     devices=1, 
@@ -129,13 +131,14 @@ def main(args) :
     #     fast_dev_run=fast_dev_run,          
     #     enable_model_summary=False,
     #     limit_train_batches = limit_train_batches, 
-    #     limit_val_batches = limit_val_batches
+    #     limit_val_batches = limit_val_batches, 
+    #     log_every_n_steps = 5,
     #     # precision=32
     # )
     
     
     # denoiser_trainer.fit(denoiser, datamodule)
-    # denoiser_trainer.test(denoiser, datamodule)
+    # denoiser_trainer.test(trained_denoiser, datamodule)
     # results = denoiser_trainer.test(denoiser, datamodule)
 
     # print(results)
@@ -143,39 +146,40 @@ def main(args) :
     
     
     # PHASE 2 : 
-    # print('''
-    #       =====================
-    #       DISCRIMINATOR WARM UP
-    #       =====================
-    #       ''')
+    print('''
+          =====================
+          DISCRIMINATOR WARM UP
+          =====================
+          ''')
 
-    # discriminator_trainer = pl.Trainer(
-    #     accelerator = accelerator,
-    #     devices=1, 
-    #     callbacks = [modelSummaryCb, tqdmProgressCb ],
-    #     logger = discriminator_logger,
-    #     max_epochs=config['train']['discriminator']['epochs'], 
-    #     fast_dev_run=fast_dev_run, 
-    #      enable_model_summary=False,      
-    #     limit_train_batches = limit_train_batches, 
-    #     limit_val_batches = limit_val_batches
-    #      # precision=32   
-    # )
+    discriminator_trainer = pl.Trainer(
+        accelerator = accelerator,
+        devices=1, 
+        callbacks = [modelSummaryCb, tqdmProgressCb ],
+        logger = discriminator_logger,
+        max_epochs=config['train']['discriminator']['epochs'], 
+        fast_dev_run=fast_dev_run, 
+         enable_model_summary=False,      
+        limit_train_batches = limit_train_batches, 
+        limit_val_batches = limit_val_batches,
+        log_every_n_steps= 5
+         # precision=32   
+    )
     
     # denoiser_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_20_02_2023_12_50_02/checkpoints/epoch=49-step=2750.ckpt'
     
     
     
     # denoiser_checkpoint_path = get_checkpoint('denoiser',experiment_version, config)
-    denoiser_checkpoint_path = '/content/drive/MyDrive/adl_seismic/lightning_logs/denoiser/adl_21_02_2023_15_09_14_best/checkpoints/epoch=49-step=27300.ckpt' # colab
+   
     
     # pdb.set_trace()
     
-    # trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
-    # discriminator = Efficient_U_DISC(trained_denoiser, config)
+    
+    discriminator = Efficient_U_DISC(trained_denoiser, config)
     
     
-    # discriminator_trainer.fit(discriminator, datamodule)
+    discriminator_trainer.fit(discriminator, datamodule) 
     
     # pdb.set_trace()
     
@@ -195,7 +199,8 @@ def main(args) :
         fast_dev_run=fast_dev_run, 
         enable_model_summary=False,       
         limit_train_batches = limit_train_batches, 
-        limit_val_batches = limit_val_batches                  
+        limit_val_batches = limit_val_batches,
+        log_every_n_steps = 5,   
         # precision=32 
     )
     
@@ -207,11 +212,13 @@ def main(args) :
     # pdb.set_trace()
     
     # denoiser_checkpoint_path = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/lightning_logs/denoiser_20230213_epoch=49-step=27600.ckpt'
-    # discriminator_checkpoint_path = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/lightning_logs/discriminator_20230213_epoch=49-step=27600.ckpt'
+    discriminator_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/discriminator/adl_17_02_2023_09_34_30/checkpoints/epoch=49-step=27600.ckpt'
+
+    pdb.set_trace()
     
-    trained_denoiser = Efficient_U.load_from_checkpoint(checkpoint_path = denoiser_checkpoint_path, config = config)
-    # trained_discriminator = Efficient_U_DISC.load_from_checkpoint(checkpoint_path = discriminator_checkpoint_path, model=trained_denoiser, config=config) 
-    trained_discriminator = Efficient_U_DISC(model=trained_denoiser, config=config)
+    # trained_denoiser = Efficient_U.load_from_checkpoint(checkpoint_path = denoiser_checkpoint_path, config = config)
+    trained_discriminator = Efficient_U_DISC.load_from_checkpoint(checkpoint_path = discriminator_checkpoint_path, model=trained_denoiser, config=config) 
+    # trained_discriminator = Efficient_U_DISC.(model=trained_denoiser, config=config)
 
     adl = ADL(trained_denoiser, trained_discriminator, config)
     
