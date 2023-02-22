@@ -6,6 +6,8 @@ train :
     batch_size : 128
     data_mode : 2d # could be 3d 
 
+    augmentations : true
+
     train_std_interval : [0.0, 0.9]
     shuffle : 1024
     pin_memory : true 
