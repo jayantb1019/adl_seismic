@@ -195,7 +195,7 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         
         self.save_hyperparameters(ignore=['model', 'disc_model'])
         
-        self.model = model # trained denoiser model
+        self.model = model.eval() # trained denoiser model
         self.disc_model = Efficient_Unet_disc(in_ch=1, out_ch=1, negative_slope = self.negative_slope, filter_base = 16 , bias=False)
         
         self.example_input_array = torch.zeros(self.batch_size, 1, self.patch_size, self.patch_size)
@@ -310,7 +310,7 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         
         lr = self.lr
 
-        optimiser = torch.optim.Adam(self.parameters(), lr = lr)
+        optimiser = torch.optim.Adam(self.disc_model.parameters(), lr = lr)
         # lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimiser, 
         #                                                     milestones = list(range(15,50,5)), 
         #                                                     gamma=self.lr_scheduler_gamma, verbose=True)
@@ -413,7 +413,7 @@ class ADL(pl.LightningModule) : # Full ADL model
             self.log('denoiser_train_hist_loss', hist_loss_1 + hist_loss_2 + hist_loss_4)
             self.log('denoiser_gan_loss', fake_loss)
             
-            train_loss = 1 * (l1_loss_1 + l1_loss_2 + l1_loss_4 + pyr_loss_1 + pyr_loss_2 + pyr_loss_4 + hist_loss_1 + hist_loss_2 + hist_loss_4) + 100 * fake_loss
+            train_loss = 1 * (l1_loss_1 + l1_loss_2 + l1_loss_4 + pyr_loss_1 + pyr_loss_2 + pyr_loss_4 + hist_loss_1 + hist_loss_2 + hist_loss_4) +  fake_loss
     
 
             self.log('denoiser_train_loss', train_loss, prog_bar=True)
@@ -505,7 +505,7 @@ class ADL(pl.LightningModule) : # Full ADL model
         self.log('denoiser_val_pyr_loss', pyr_loss_1 + pyr_loss_2 + pyr_loss_4)
         self.log('denoiser_val_hist_loss', hist_loss_1 + hist_loss_2 + hist_loss_4)
         
-        val_loss =  (l1_loss_1 + l1_loss_2 + l1_loss_4 + pyr_loss_1 + pyr_loss_2 + pyr_loss_4 + hist_loss_1 + hist_loss_2 + hist_loss_4 )+ 100 * fake_loss   
+        val_loss =  (l1_loss_1 + l1_loss_2 + l1_loss_4 + pyr_loss_1 + pyr_loss_2 + pyr_loss_4 + hist_loss_1 + hist_loss_2 + hist_loss_4 )+  fake_loss   
         # val_loss = fake_loss 
 
         self.log('denoiser_val_loss', val_loss, prog_bar=True)
