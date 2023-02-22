@@ -96,18 +96,18 @@ def main(args) :
     # denoiser performance test # uncomment to run denoiser baseline
     denoiser_ckpt_path_test = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_20_02_2023_12_50_02/checkpoints/epoch=49-step=2750.ckpt'
     trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_ckpt_path_test)
-    # denoiser_trainer = pl.Trainer(
-    #     accelerator = accelerator,
-    #     devices=1, 
-    #     callbacks = [modelSummaryCb, tqdmProgressCb ],
-    #     logger = denoiser_logger,
-    #     max_epochs=config['train']['denoiser']['epochs'], 
-    #     fast_dev_run=fast_dev_run,          
-    #     enable_model_summary=False,
-    #     limit_train_batches = limit_train_batches, 
-    #     limit_val_batches = limit_val_batches
-    #     # precision=32
-    # )
+    denoiser_trainer = pl.Trainer(
+        accelerator = accelerator,
+        devices=1, 
+        callbacks = [modelSummaryCb, tqdmProgressCb ],
+        logger = denoiser_logger,
+        max_epochs=config['train']['denoiser']['epochs'], 
+        fast_dev_run=fast_dev_run,          
+        enable_model_summary=False,
+        limit_train_batches = limit_train_batches, 
+        limit_val_batches = limit_val_batches
+        # precision=32
+    )
 
     # denoiser_trainer.test(trained_denoiser, datamodule)
     # pdb.set_trace()
@@ -181,7 +181,9 @@ def main(args) :
     
     discriminator_trainer.fit(discriminator, datamodule) 
     
-    # pdb.set_trace()
+    denoiser_trainer.fit(trained_denoiser, datamodule)
+    
+    pdb.set_trace()
     
     # PHASE 3 : 
     print('''
