@@ -266,7 +266,7 @@ if __name__ == '__main__' :
     parser.add_argument('-lt', type=float, default = 0.99) # limit train batches
     parser.add_argument('-lv', type=float, default = 0.99) # limit val batches
     parser.add_argument('-e', type=int, default=None)
-    parser.add_argument('-lambda1', type=int, defaults = None )
+    parser.add_argument('-lambda1', type=int, default = None )
 
     
     bs = parser.parse_args().bs
