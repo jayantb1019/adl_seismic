@@ -6,7 +6,7 @@ train :
     batch_size : 128
     data_mode : 2d # could be 3d 
 
-    augmentations : true
+    augmentations : false
 
     train_std_interval : [0.0, 0.9]
     shuffle : 1024
