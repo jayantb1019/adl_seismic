@@ -29,7 +29,7 @@ sys.path.append('../datamodules')
 from adl import Efficient_U, Efficient_U_DISC, ADL
 from dm_faciesmark import FaciesMarkDataModule
 
-# CONFIG_PATH = '../config/config_adl_faciesmark.yaml'
+CONFIG_PATH = '../config/config_adl_faciesmark.yaml'
 # # CONFIG_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/config/config_adl_faciesmark.yaml'
 
 accelerator = 'cuda'
@@ -162,7 +162,8 @@ def main(args) :
          enable_model_summary=False,      
         limit_train_batches = limit_train_batches, 
         limit_val_batches = limit_val_batches,
-        log_every_n_steps= 5
+        log_every_n_steps= 5, 
+        check_val_every_n_epochs = 5
          # precision=32   
     )
     
@@ -217,7 +218,7 @@ def main(args) :
     # denoiser_checkpoint_path = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/lightning_logs/denoiser_20230213_epoch=49-step=27600.ckpt'
     # discriminator_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/discriminator/adl_22_02_2023_12_48_38/checkpoints/epoch=39-step=21840.ckpt'
 
-    pdb.set_trace()
+    # pdb.set_trace()
     
     # trained_denoiser = Efficient_U.load_from_checkpoint(checkpoint_path = denoiser_checkpoint_path, config = config)
     trained_discriminator = Efficient_U_DISC.load_from_checkpoint(checkpoint_path = discriminator_checkpoint_path, model=trained_denoiser, config=config) 
