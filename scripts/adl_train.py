@@ -119,22 +119,22 @@ def main(args) :
     #       ================
     #       ''')
     # denoiser = Efficient_U(config)
-    # denoiser_checkpoint_path = '/content/drive/MyDrive/adl_seismic/lightning_logs/denoiser/adl_21_02_2023_15_09_14_best/checkpoints/epoch=49-step=27300.ckpt' # colab
-    denoiser_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_21_02_2023_19_23_55/checkpoints/epoch=49-step=27300.ckpt' # workstation
+    denoiser_checkpoint_path = '/content/drive/MyDrive/adl_seismic/lightning_logs/denoiser/adl_21_02_2023_15_09_14_best/checkpoints/epoch=49-step=27300.ckpt' # colab
+    # denoiser_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_21_02_2023_19_23_55/checkpoints/epoch=49-step=27300.ckpt' # workstation
     trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
-    # denoiser_trainer = pl.Trainer(
-    #     accelerator = accelerator,
-    #     devices=1, 
-    #     callbacks = [modelSummaryCb, tqdmProgressCb ],
-    #     logger = denoiser_logger,
-    #     max_epochs=config['train']['denoiser']['epochs'], 
-    #     fast_dev_run=fast_dev_run,          
-    #     enable_model_summary=False,
-    #     limit_train_batches = limit_train_batches, 
-    #     limit_val_batches = limit_val_batches, 
-    #     log_every_n_steps = 5,
-    #     # precision=32
-    # )
+    denoiser_trainer = pl.Trainer(
+        accelerator = accelerator,
+        devices=1, 
+        callbacks = [modelSummaryCb, tqdmProgressCb ],
+        logger = denoiser_logger,
+        max_epochs=config['train']['denoiser']['epochs'], 
+        fast_dev_run=fast_dev_run,          
+        enable_model_summary=False,
+        limit_train_batches = limit_train_batches, 
+        limit_val_batches = limit_val_batches, 
+        log_every_n_steps = 5,
+        # precision=32
+    )
     
     
     # denoiser_trainer.fit(denoiser, datamodule)
@@ -182,9 +182,9 @@ def main(args) :
     discriminator_trainer.fit(discriminator, datamodule) 
     # denoiser_trainer.test(trained_denoiser, datamodule)
     
-    denoiser_trainer.fit(trained_denoiser, datamodule)
+    denoiser_trainer.test(trained_denoiser, datamodule)
     
-    pdb.set_trace()
+    # pdb.set_trace()
     
     # PHASE 3 : 
     print('''
