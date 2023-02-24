@@ -349,7 +349,7 @@ class ADL(pl.LightningModule) : # Full ADL model
         self.lr_scheduler = adl_config['lr_scheduler']['type']
         self.gamma = adl_config['lr_scheduler']['kwargs']['gamma']
         
-        self.lambda1 = adl_config['lambda']
+        self.lambda1 = adl_config['lambda1']
         
         self.save_hyperparameters(ignore=['denoiser', 'discriminator'])
         self.example_input_array = torch.zeros(self.batch_size, 1, self.patch_size, self.patch_size)

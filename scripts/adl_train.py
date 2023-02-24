@@ -76,6 +76,10 @@ def main(args) :
         config['train']['denoiser']['epochs'] = args['e']
         config['train']['discriminator']['epochs'] = args['e']
         config['train']['ADL']['epochs'] = args['e']
+        
+        
+    if args['lambda1'] : 
+        config['train']['ADL']['lambda1'] = args['lambda1']
 
 
     limit_train_batches = args['lt']
@@ -261,6 +265,7 @@ if __name__ == '__main__' :
     parser.add_argument('-lt', type=float, default = 0.99) # limit train batches
     parser.add_argument('-lv', type=float, default = 0.99) # limit val batches
     parser.add_argument('-e', type=int, default=None)
+    parser.add_argument('-lambda1', type=int, defaults = None )
 
     
     bs = parser.parse_args().bs
@@ -269,6 +274,7 @@ if __name__ == '__main__' :
     lt = parser.parse_args().lt
     lv = parser.parse_args().lv
     e = parser.parse_args().e
+    lambda1 = parser.parser_args().lambda1
     
-    args = dict(bs = bs , accelerator = accelerator, loc=loc , lt = lt, lv = lv, e = e)
+    args = dict(bs = bs , accelerator = accelerator, loc=loc , lt = lt, lv = lv, e = e, lambda1= lambda1)
     main(args)

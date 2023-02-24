@@ -34,7 +34,7 @@ train :
     print_model : false 
     lr : 0.00001  # research paper mentions learning rate applicable to denoiser i think. ''We used the Adam algorithm [19] as an optimizer with the 
     optimizer : Adam         # ReduceLRonPlateau scheduler [47].The optimization started with a learning rate of 10 −4 
-    lambda : 100 # gen loss + lambda * gan loss
+    lambda1 : 100 # gen loss + lambda * gan loss
     lr_scheduler : 
       type : MultiStepLR 
       kwargs : 
