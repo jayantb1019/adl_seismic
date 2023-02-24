@@ -163,7 +163,7 @@ def main(args) :
         limit_train_batches = limit_train_batches, 
         limit_val_batches = limit_val_batches,
         log_every_n_steps= 5, 
-        check_val_every_n_epochs = 5
+        check_val_every_n_epoch = 5
          # precision=32   
     )
     
@@ -205,6 +205,7 @@ def main(args) :
         limit_train_batches = limit_train_batches, 
         limit_val_batches = limit_val_batches,
         log_every_n_steps = 5,   
+        check_val_every_n_epoch = 5
         # precision=32 
     )
     
