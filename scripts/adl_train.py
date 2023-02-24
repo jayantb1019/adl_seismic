@@ -122,12 +122,13 @@ def main(args) :
     # pdb.set_trace()
 
     #PHASE 1 : 
-    # print('''
-    #       ================
-    #       DENOISER WARM UP
-    #       ================
-    #       ''')
+    print('''
+          ================
+          DENOISER WARM UP
+          ================
+          ''')
     denoiser = Efficient_U(config)
+    
     if args['loc'] == 'kaggle' : 
         denoiser_checkpoint_path = '/kaggle/working/adl_seismic/checkpoints/denoiser.ckpt' # colab
     if args['loc'] == 'workstation' : 
