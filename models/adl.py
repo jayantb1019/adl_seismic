@@ -41,8 +41,9 @@ class Efficient_U(pl.LightningModule) : # denoiser
         self.optimizer = denoiser_config['optimizer']
         self.lr_scheduler = denoiser_config['lr_scheduler']['type']
         self.lr_scheduler_gamma = denoiser_config['lr_scheduler']['kwargs']['gamma']
+        self.use_dropout = denoiser_config['use_dropout']
         
-        self.model = Efficient_Unet(in_ch=1, out_ch = 1, filter_base=32, bias=False)
+        self.model = Efficient_Unet(in_ch=1, out_ch = 1, filter_base=32, bias=False, use_dropout = self.use_dropout)
         
         self.save_hyperparameters()
         
@@ -344,7 +345,8 @@ class ADL(pl.LightningModule) : # Full ADL model
         self.batch_size = data_config['batch_size']
         
         adl_config = config['train']['ADL']
-        self.lr = adl_config['lr']
+        self.denoiser_lr = adl_config['denoiser_lr']
+        self.discriminator_lr = adl_config['discriminator_lr']
         self.optimizer = adl_config['optimizer']
         self.lr_scheduler = adl_config['lr_scheduler']['type']
         self.gamma = adl_config['lr_scheduler']['kwargs']['gamma']
@@ -536,13 +538,14 @@ class ADL(pl.LightningModule) : # Full ADL model
 
 
     def configure_optimizers(self):
-        print('adl lr :', self.lr)
+        print('adl denoiser lr :', self.denoiser_lr)
+        print('adl discrminator lr :', self.discrminator_lr)
         opt_denoiser = torch.optim.Adam(
-            self.denoiser.parameters(), lr = self.lr
+            self.denoiser.parameters(), lr = self.denoiser_lr
         )
         
         opt_discriminator = torch.optim.Adam(
-            self.discriminator.parameters(), lr = self.lr
+            self.discriminator.parameters(), lr = self.discriminator_lr
         )
         
         denoiser_lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_denoiser, mode='min', patience = 5, threshold=0.001, verbose=True)

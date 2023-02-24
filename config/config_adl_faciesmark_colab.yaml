@@ -1,4 +1,6 @@
 train : 
+  accelerator : cuda
+  fast_dev_run : false
   data : 
     seed : 42
     patch_size : 32
@@ -32,7 +34,9 @@ train :
   ADL : 
     epochs : 50
     print_model : false 
-    lr : 0.00001  # research paper mentions learning rate applicable to denoiser i think. ''We used the Adam algorithm [19] as an optimizer with the 
+    use_dropout : false
+    denoiser_lr : 0.00001  # research paper mentions learning rate applicable to denoiser i think. ''We used the Adam algorithm [19] as an optimizer with the 
+    discriminator_lr : 0.000001
     optimizer : Adam         # ReduceLRonPlateau scheduler [47].The optimization started with a learning rate of 10 −4 
     lambda1 : 100 # gen loss + lambda * gan loss
     lr_scheduler : 
@@ -44,6 +48,7 @@ train :
   
   denoiser : 
     model : Efficient_Unet
+    use_dropout : false
     epochs : 50 
     lr : 0.0001
     optimizer: Adam

@@ -52,7 +52,7 @@ class FeatureExtrator(nn.Module):
 
 # Residual block
 class Residual_block(nn.Module):
-  def __init__(self, in_ch, out_ch, stride=1, bias=False):
+  def __init__(self, in_ch, out_ch, stride=1, bias=False, use_dropout=False):
     super(Residual_block,self).__init__()
     self.conv1 = nn.Conv2d(in_ch, out_ch, kernel_size=3, stride=stride, padding =1, bias=bias)
     self.conv2 = nn.Conv2d(out_ch, out_ch, kernel_size=3, stride=1, padding =(1,1), bias=bias)
@@ -60,6 +60,10 @@ class Residual_block(nn.Module):
 
     # self.bn = nn.BatchNorm2d(out_ch)
     self.tanh = nn.Tanh()
+    
+    self.use_dropout = use_dropout 
+    if self.use_dropout : 
+      self.dropout = nn.Dropout2d(0.2)
 
   def forward(self, inp):
     # x = self.tanh(self.bn(self.conv1(inp)))
@@ -77,25 +81,31 @@ class Residual_block(nn.Module):
     # x = self.tanh(x)
     
     # activation is performed in model file
-    return self.tanh(x + s)
+    x =  self.tanh(x + s) 
+    
+    return self.dropout(x) if self.use_dropout else x
 
 
 # Decoder block
 class Decoder_block(nn.Module):
-  def __init__(self, in_ch, skip_ch, out_ch):
+  def __init__(self, in_ch, skip_ch, out_ch, use_dropout = False):
     super(Decoder_block,self).__init__()
 
 
     self.up_sampling = nn.ConvTranspose2d(in_ch, out_ch, 3, stride=2, 
                                           padding=1, output_padding=1, bias=False) #nn.Upsample(scale_factor=2)
     self.resblock = Residual_block(out_ch+skip_ch, out_ch, stride=1, bias=False)
+    
+    self.use_dropout = use_dropout 
+    if self.use_dropout : 
+      self.dropout = nn.Dropout2d(0.2)
 
   def forward(self, inp, skip_features):
     x = self.up_sampling(inp)
 
     x = torch.cat((x, skip_features), dim=1)
     x = self.resblock(x)
-    return x
+    return self.dropout(x) if self.use_dropout else x
 
 # Transformer for denoiser
 class Transformer(nn.Module):
@@ -155,7 +165,7 @@ class Disc_Transformer(nn.Module): # returns a pixel level classification
 
 
 class Efficient_Unet(nn.Module):
-  def __init__(self, in_ch, out_ch, filter_base=32, bias=False):
+  def __init__(self, in_ch, out_ch, filter_base=32, bias=False, use_dropout = False):
     super(Efficient_Unet, self).__init__()
     f1 = 3*filter_base
     f2 = f1 + filter_base
@@ -166,25 +176,25 @@ class Efficient_Unet(nn.Module):
     self.feature_extractor = FeatureExtrator(in_ch, f1) #[B,C,W,H]-->[B,f1,W,H]
 
     #Encoder1
-    self.down_0 = Residual_block(in_ch, f1, stride=1) #[B,C,W,H]-->[B,f1,W,H]
+    self.down_0 = Residual_block(in_ch, f1, stride=1, use_dropout=use_dropout) #[B,C,W,H]-->[B,f1,W,H]
 
     #Encoder2
-    self.down_1 = Residual_block(f1, f2, stride=2) #[B,f1,W,H]-->[B,f2,W/2,H/2]
+    self.down_1 = Residual_block(f1, f2, stride=2, use_dropout=use_dropout) #[B,f1,W,H]-->[B,f2,W/2,H/2]
 
     #Encoder3
-    self.down_2 = Residual_block(f2, f3, stride=2) #[B,f2,W/2,H/2]-->[B,f3,W/4,H/4]
+    self.down_2 = Residual_block(f2, f3, stride=2, use_dropout=use_dropout) #[B,f2,W/2,H/2]-->[B,f3,W/4,H/4]
 
     #Bridge
-    self.bridge = Residual_block(f3, fb, stride=2) #[B,f3,W/4,H/4]-->[B,fb,W/8,H/8]
+    self.bridge = Residual_block(f3, fb, stride=2, use_dropout=use_dropout) #[B,f3,W/4,H/4]-->[B,fb,W/8,H/8]
 
     #Decoder1
-    self.Decoder_block1 = Decoder_block(fb, f3, f3) #[B,fb,W/8,H/8]-->[B,f3,W/4,H/4]
+    self.Decoder_block1 = Decoder_block(fb, f3, f3, use_dropout=use_dropout) #[B,fb,W/8,H/8]-->[B,f3,W/4,H/4]
 
     #Decoder2
-    self.Decoder_block2 = Decoder_block(f3, f2, f2) #[B,f3-->[B,f2,W/2,H/2]
+    self.Decoder_block2 = Decoder_block(f3, f2, f2, use_dropout=use_dropout) #[B,f3-->[B,f2,W/2,H/2]
 
     #Decoder3
-    self.Decoder_block3 = Decoder_block(f2, 2*f1, f1) #[B,f2,W/4,H/4]-->[B,f1,W,H]
+    self.Decoder_block3 = Decoder_block(f2, 2*f1, f1, use_dropout=use_dropout) #[B,f2,W/4,H/4]-->[B,f1,W,H]
 
 
     # Transformers
