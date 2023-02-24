@@ -127,7 +127,7 @@ def main(args) :
     #       DENOISER WARM UP
     #       ================
     #       ''')
-    # denoiser = Efficient_U(config)
+    denoiser = Efficient_U(config)
     if args['loc'] == 'kaggle' : 
         denoiser_checkpoint_path = '/kaggle/working/adl_seismic/checkpoints/denoiser.ckpt' # colab
     if args['loc'] == 'workstation' : 
@@ -136,7 +136,7 @@ def main(args) :
         denoiser_checkpoint_path = '/content/drive/MyDrive/adl_seismic/lightning_logs/denoiser/adl_21_02_2023_15_09_14_best/checkpoints/epoch=49-step=27300.ckpt'
         
     # denoiser_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_21_02_2023_19_23_55/checkpoints/epoch=49-step=27300.ckpt' # workstation
-    trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
+    #trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
     denoiser_trainer = pl.Trainer(
         accelerator = accelerator,
         devices=1, 
@@ -154,8 +154,8 @@ def main(args) :
     )
     
     
-    # denoiser_trainer.fit(denoiser, datamodule)
-    # denoiser_trainer.test(trained_denoiser, datamodule)
+    denoiser_trainer.fit(denoiser, datamodule)
+    denoiser_trainer.test(denoiser, datamodule)
     # results = denoiser_trainer.test(denoiser, datamodule)
 
     # print(results)
@@ -191,8 +191,8 @@ def main(args) :
     
     
     
-    # denoiser_checkpoint_path = get_checkpoint('denoiser',experiment_version, config)
-   
+    denoiser_checkpoint_path = get_checkpoint('denoiser',experiment_version, config)
+    trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
     
     # pdb.set_trace()
     
