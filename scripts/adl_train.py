@@ -29,8 +29,8 @@ sys.path.append('../datamodules')
 from adl import Efficient_U, Efficient_U_DISC, ADL
 from dm_faciesmark import FaciesMarkDataModule
 
-CONFIG_PATH = '../config/config_adl_faciesmark.yaml'
-# # CONFIG_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/config/config_adl_faciesmark.yaml'
+# CONFIG_PATH = '../config/config_adl_faciesmark.yaml'
+# CONFIG_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/config/config_adl_faciesmark.yaml'
 
 accelerator = 'cuda'
 fast_dev_run = False

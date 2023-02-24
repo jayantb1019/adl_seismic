@@ -349,8 +349,12 @@ class ADL(pl.LightningModule) : # Full ADL model
         self.lr_scheduler = adl_config['lr_scheduler']['type']
         self.gamma = adl_config['lr_scheduler']['kwargs']['gamma']
         
+        self.lambda1 = adl_config['lambda']
+        
         self.save_hyperparameters(ignore=['denoiser', 'discriminator'])
         self.example_input_array = torch.zeros(self.batch_size, 1, self.patch_size, self.patch_size)
+        
+        
         
     def forward(self, x) : 
         denoised = self.denoiser(x)
@@ -413,7 +417,7 @@ class ADL(pl.LightningModule) : # Full ADL model
             self.log('denoiser_train_hist_loss', hist_loss_1 + hist_loss_2 + hist_loss_4)
             self.log('denoiser_gan_loss', fake_loss)
             
-            train_loss = 1 * (l1_loss_1 + l1_loss_2 + l1_loss_4 + pyr_loss_1 + pyr_loss_2 + pyr_loss_4 + hist_loss_1 + hist_loss_2 + hist_loss_4) +  fake_loss
+            train_loss = 1 * (l1_loss_1 + l1_loss_2 + l1_loss_4 + pyr_loss_1 + pyr_loss_2 + pyr_loss_4 + hist_loss_1 + hist_loss_2 + hist_loss_4) +  self.lambda1 * fake_loss
     
 
             self.log('denoiser_train_loss', train_loss, prog_bar=True)
@@ -505,7 +509,7 @@ class ADL(pl.LightningModule) : # Full ADL model
         self.log('denoiser_val_pyr_loss', pyr_loss_1 + pyr_loss_2 + pyr_loss_4)
         self.log('denoiser_val_hist_loss', hist_loss_1 + hist_loss_2 + hist_loss_4)
         
-        val_loss =  (l1_loss_1 + l1_loss_2 + l1_loss_4 + pyr_loss_1 + pyr_loss_2 + pyr_loss_4 + hist_loss_1 + hist_loss_2 + hist_loss_4 )+  fake_loss   
+        val_loss =  (l1_loss_1 + l1_loss_2 + l1_loss_4 + pyr_loss_1 + pyr_loss_2 + pyr_loss_4 + hist_loss_1 + hist_loss_2 + hist_loss_4 )+  self.lambda1 * fake_loss   
         # val_loss = fake_loss 
 
         self.log('denoiser_val_loss', val_loss, prog_bar=True)
