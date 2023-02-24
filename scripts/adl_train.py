@@ -109,7 +109,9 @@ def main(args) :
     #     enable_model_summary=False,
     #     limit_train_batches = limit_train_batches, 
     #     limit_val_batches = limit_val_batches
-    #     # precision=32
+    #     # precision=32, 
+    #     track_grad_norm=2, # this will plot norm-2 to tensorboard, if its increasing, then the gradients would explode.
+    #     detect_anomaly = True # detects nans in forward / backward pass and stops training
     # )
 
     # denoiser_trainer.test(trained_denoiser, datamodule)
@@ -143,6 +145,8 @@ def main(args) :
         limit_val_batches = limit_val_batches, 
         log_every_n_steps = 5,
         # precision=32
+        track_grad_norm=2, # this will plot norm-2 to tensorboard, if its increasing, then the gradients would explode.
+        detect_anomaly = True # detects nans in forward / backward pass and stops training
     )
     
     
@@ -172,9 +176,11 @@ def main(args) :
         limit_train_batches = limit_train_batches, 
         limit_val_batches = limit_val_batches,
         log_every_n_steps= 5, 
-        overfit_batches= 50
+        overfit_batches= 50,
         # check_val_every_n_epoch = 5
          # precision=32   
+        track_grad_norm=2, # this will plot norm-2 to tensorboard, if its increasing, then the gradients would explode.
+        detect_anomaly = True # detects nans in forward / backward pass and stops training
     )
     
     # denoiser_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_20_02_2023_12_50_02/checkpoints/epoch=49-step=2750.ckpt'
@@ -215,7 +221,9 @@ def main(args) :
         limit_train_batches = limit_train_batches, 
         limit_val_batches = limit_val_batches,
         log_every_n_steps = 5,   
-        overfit_batches=50
+        overfit_batches=50,
+        track_grad_norm=2, # this will plot norm-2 to tensorboard, if its increasing, then the gradients would explode.
+        detect_anomaly = True # detects nans in forward / backward pass and stops training
         # check_val_every_n_epoch = 5
         # precision=32 
     )
