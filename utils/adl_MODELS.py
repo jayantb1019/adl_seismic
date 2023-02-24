@@ -63,7 +63,7 @@ class Residual_block(nn.Module):
     
     self.use_dropout = use_dropout 
     if self.use_dropout : 
-      self.dropout = nn.Dropout2d(0.2)
+      self.dropout = nn.Dropout2d(0.1)
 
   def forward(self, inp):
     # x = self.tanh(self.bn(self.conv1(inp)))
@@ -98,7 +98,7 @@ class Decoder_block(nn.Module):
     
     self.use_dropout = use_dropout 
     if self.use_dropout : 
-      self.dropout = nn.Dropout2d(0.2)
+      self.dropout = nn.Dropout2d(0.1)
 
   def forward(self, inp, skip_features):
     x = self.up_sampling(inp)

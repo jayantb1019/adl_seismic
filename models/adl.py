@@ -539,7 +539,7 @@ class ADL(pl.LightningModule) : # Full ADL model
 
     def configure_optimizers(self):
         print('adl denoiser lr :', self.denoiser_lr)
-        print('adl discrminator lr :', self.discrminator_lr)
+        print('adl discrminator lr :', self.discriminator_lr)
         opt_denoiser = torch.optim.Adam(
             self.denoiser.parameters(), lr = self.denoiser_lr
         )
