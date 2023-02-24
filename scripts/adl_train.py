@@ -275,7 +275,7 @@ if __name__ == '__main__' :
     lt = parser.parse_args().lt
     lv = parser.parse_args().lv
     e = parser.parse_args().e
-    lambda1 = parser.parser_args().lambda1
+    lambda1 = parser.parse_args().lambda1
     
     args = dict(bs = bs , accelerator = accelerator, loc=loc , lt = lt, lv = lv, e = e, lambda1= lambda1)
     main(args)
