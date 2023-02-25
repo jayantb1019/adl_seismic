@@ -398,7 +398,7 @@ class ADL(pl.LightningModule) : # Full ADL model
             # fake_loss = torch.mean(RELU(1.0 - fake_ravel))
             
             # fake_loss = torch.mean(RELU(1.0 - (fake_ravel))) 
-            fake_loss = HINGE(fake_ravel, torch.ones_like(fake_ravel))
+            fake_loss = -1 * HINGE(fake_ravel, torch.ones_like(fake_ravel))
             
             # model loss
             
@@ -421,7 +421,7 @@ class ADL(pl.LightningModule) : # Full ADL model
             self.log('denoiser_train_hist_loss', hist_loss_1 + hist_loss_2 + hist_loss_4)
             self.log('denoiser_gan_loss', fake_loss)
             
-            train_loss = 1 * (l1_loss_1 + l1_loss_2 + l1_loss_4 + pyr_loss_1 + pyr_loss_2 + pyr_loss_4 + hist_loss_1 + hist_loss_2 + hist_loss_4) +  self.lambda1 * fake_loss
+            train_loss = 1 * (l1_loss_1 + l1_loss_2 + l1_loss_4 + pyr_loss_1 + pyr_loss_2 + pyr_loss_4 + hist_loss_1 + hist_loss_2 + hist_loss_4) -  self.lambda1 * fake_loss
     
 
             self.log('denoiser_train_loss', train_loss, prog_bar=True)
