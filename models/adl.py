@@ -255,8 +255,10 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         loss = (loss_true + loss_pred)/2
         
         self.log('disc_train_loss', loss, prog_bar=True )
+        self.log('disc_train_true_loss', loss_true)
+        self.log('disc_train_pred_loss', loss_pred)
         
-        return loss
+        return -1 * loss
     
     def validation_step(self, batch, batch_idx, *args, **kwargs) : ## look at this again!! discriminator should train on half a batch of clean and half a batch of denoised
         
@@ -299,8 +301,10 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         loss = (loss_true + loss_pred)/2
         
         self.log('disc_val_loss', loss, prog_bar=True )
+        self.log('disc_val_true_loss', loss_true)
+        self.log('disc_val_pred_loss', loss_pred)
         
-        return loss
+        return -1 * loss
     
 
 
@@ -495,7 +499,7 @@ class ADL(pl.LightningModule) : # Full ADL model
         # fake_loss = torch.mean(RELU(1.0 - fake_ravel))
         
         # fake_loss = torch.mean(RELU(1.0 - (fake_ravel))) + torch.mean(RELU(1.0 - (torch.reshape(fake_bridge, (B,-1)))))
-        fake_loss = HINGE(fake_ravel, torch.ones_like(fake_ravel))
+        fake_loss = -1 * HINGE(fake_ravel, torch.ones_like(fake_ravel))
 
         l1_loss_1 = Loss_L1(clean, denoised)
         l1_loss_2 = Loss_L1(clean_2, denoised_2)
