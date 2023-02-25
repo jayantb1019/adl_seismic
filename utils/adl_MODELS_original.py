@@ -90,7 +90,7 @@ class Residual_block(nn.Module):
 
 class Residual_block_Disc(nn.Module):
   def __init__(self, in_ch, out_ch, stride=1, bias=False):
-    super(Residual_block,self).__init__()
+    super(Residual_block_Disc,self).__init__()
     self.conv1 = nn.Conv2d(in_ch, out_ch, kernel_size=3, stride=stride, padding =1, bias=bias)
     self.conv2 = nn.Conv2d(out_ch, out_ch, kernel_size=3, stride=1, padding =(1,1), bias=bias)
     self.conv3 = nn.Conv2d(in_ch, out_ch, kernel_size=1, stride=stride, padding =(0,0), bias=bias)
