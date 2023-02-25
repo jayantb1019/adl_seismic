@@ -402,7 +402,9 @@ class ADL(pl.LightningModule) : # Full ADL model
             # fake_loss = torch.mean(RELU(1.0 - fake_ravel))
             
             # fake_loss = torch.mean(RELU(1.0 - (fake_ravel))) 
-            fake_loss = -1 * HINGE(fake_ravel, torch.ones_like(fake_ravel))
+            # fake_loss = -1 * HINGE(fake_ravel, torch.ones_like(fake_ravel))
+            
+            fake_loss = -1 * torch.mean(fake_ravel)
             
             # model loss
             
@@ -427,7 +429,8 @@ class ADL(pl.LightningModule) : # Full ADL model
             
             train_loss = 1 * (l1_loss_1 + l1_loss_2 + l1_loss_4 + pyr_loss_1 + pyr_loss_2 + pyr_loss_4 + hist_loss_1 + hist_loss_2 + hist_loss_4) + self.lambda1 * fake_loss
     
-
+            
+            
             self.log('denoiser_train_loss', train_loss, prog_bar=True)
             
             # pdb.set_trace()
@@ -454,7 +457,8 @@ class ADL(pl.LightningModule) : # Full ADL model
                                 ], axis=-1)
             
             # real_loss = torch.mean(RELU(1.0 - (real_ravel))) + torch.mean(RELU(1.0 - (torch.reshape(real_bridge, (B,-1)))))
-            real_loss = HINGE(real_ravel, torch.ones_like(real_ravel))
+            # real_loss = HINGE(real_ravel, torch.ones_like(real_ravel))
+            real_loss = torch.max(0, 1 - torch.mean(real_ravel))
             
             fake_ravel =  torch.concat([
                                 torch.reshape(fake_bridge, (B,-1)),
@@ -465,9 +469,11 @@ class ADL(pl.LightningModule) : # Full ADL model
             
             # fake_loss = torch.mean(RELU(1.0 + fake_ravel)) + torch.mean(RELU(1.0 + (torch.reshape(fake_bridge, (B,-1)))))
             
-            fake_loss = HINGE(fake_ravel, -1 * torch.ones_like(fake_ravel))
+            # fake_loss = HINGE(fake_ravel, -1 * torch.ones_like(fake_ravel))
+            fake_loss = torch.max(0, 1 + torch.mean(fake_ravel))
             
-            loss = (real_loss + fake_loss) / 2
+            loss = (real_loss + fake_loss) / 2 
+            
             
             self.log('disc_train_loss', loss, prog_bar = True)
             # pdb.set_trace()
