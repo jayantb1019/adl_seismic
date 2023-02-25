@@ -458,7 +458,7 @@ class ADL(pl.LightningModule) : # Full ADL model
             
             # real_loss = torch.mean(RELU(1.0 - (real_ravel))) + torch.mean(RELU(1.0 - (torch.reshape(real_bridge, (B,-1)))))
             # real_loss = HINGE(real_ravel, torch.ones_like(real_ravel))
-            real_loss = torch.max(0, 1 - torch.mean(real_ravel))
+            real_loss = torch.max(torch.zeros_like(real_ravel), torch.ones_like(real_ravel) - torch.mean(real_ravel))
             
             fake_ravel =  torch.concat([
                                 torch.reshape(fake_bridge, (B,-1)),
@@ -470,7 +470,7 @@ class ADL(pl.LightningModule) : # Full ADL model
             # fake_loss = torch.mean(RELU(1.0 + fake_ravel)) + torch.mean(RELU(1.0 + (torch.reshape(fake_bridge, (B,-1)))))
             
             # fake_loss = HINGE(fake_ravel, -1 * torch.ones_like(fake_ravel))
-            fake_loss = torch.max(0, 1 + torch.mean(fake_ravel))
+            fake_loss = torch.max(torch.zeros_like(fake_ravel), torch.ones_like(fake_ravel) + torch.mean(fake_ravel))
             
             loss = (real_loss + fake_loss) / 2 
             
@@ -505,7 +505,8 @@ class ADL(pl.LightningModule) : # Full ADL model
         # fake_loss = torch.mean(RELU(1.0 - fake_ravel))
         
         # fake_loss = torch.mean(RELU(1.0 - (fake_ravel))) + torch.mean(RELU(1.0 - (torch.reshape(fake_bridge, (B,-1)))))
-        fake_loss = -1 * HINGE(fake_ravel, torch.ones_like(fake_ravel))
+        # fake_loss = -1 * HINGE(fake_ravel, torch.ones_like(fake_ravel)) 
+        fake_loss = -1 * torch.mean(fake_ravel)
 
         l1_loss_1 = Loss_L1(clean, denoised)
         l1_loss_2 = Loss_L1(clean_2, denoised_2)
