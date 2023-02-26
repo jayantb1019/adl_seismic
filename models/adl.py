@@ -14,7 +14,7 @@ import sys
 sys.path.append('../utils')
 
 from adl_MODELS import Efficient_Unet_disc , Efficient_Unet
-from adl_loss import Loss_L1 , Loss_PYR, Loss_Hist, HingeLoss
+from adl_loss import Loss_L1 , Loss_PYR, Loss_Hist, HingeLoss, compute_gradient_penalty
 
 #TODO : Change the milestones (list of epoch indices) in MultiStepLR schedulers.
 
@@ -23,7 +23,6 @@ from adl_loss import Loss_L1 , Loss_PYR, Loss_Hist, HingeLoss
 
 # def HINGE(preds, target) : # tensor, tensor
 #     return torch.mean(torch.max(torch.zeros_like(preds) , torch.ones_like(preds) - preds * target)).to('cuda')
-    
 
 
 class Efficient_U(pl.LightningModule) : # denoiser
@@ -207,7 +206,7 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         self.gen_label = self.fake_label
         
         
-        self.disc_model = Efficient_Unet_disc(in_ch=1, out_ch=1, negative_slope = self.negative_slope, filter_base = 16 , bias=False)
+        self.disc_model = Efficient_Unet_disc(in_ch=1, out_ch=1, negative_slope = self.negative_slope, filter_base = 8 , bias=False)
         
         self.example_input_array = torch.zeros(self.batch_size, 1, self.patch_size, self.patch_size)
         
@@ -498,7 +497,8 @@ class ADL(pl.LightningModule) : # Full ADL model
             
             fake_loss = self.hinge_loss(fake_ravel, self.fake_label * torch.ones_like(fake_ravel))
             
-            loss = (real_loss + fake_loss) / 2 
+            loss = (real_loss + fake_loss) 
+            # + 10 * compute_gradient_penalty(self.discriminator, real_ravel, fake_ravel) # lambda gp = 10
             
             
             self.log('disc_train_loss', loss, prog_bar = True)

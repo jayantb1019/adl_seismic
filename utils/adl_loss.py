@@ -159,3 +159,26 @@ class HingeLoss(nn.Module) :
         # apply sign
         output = torch.mul(output, self.sign)
         return output    
+    
+def compute_gradient_penalty(discriminator, real_samples, fake_samples): # real / fake sample size : 256, 1, 28, 28, 
+        """Calculates the gradient penalty loss for WGAN GP"""
+        # Random weight term for interpolation between real and fake samples
+        alpha = torch.Tensor(np.random.random((real_samples.size(0), 1, 1, 1))).to('cuda') # size : 256, 1, 1, 1
+        # Get random interpolation between real and fake samples
+        interpolates = (alpha * real_samples + ((1 - alpha) * fake_samples)).requires_grad_(True) # somewhere in between real and fake
+        interpolates = interpolates.to('cuda')
+        d_interpolates = discriminator(interpolates) # discriminator output for the interpolates / approxmation
+        fake = torch.Tensor(real_samples.shape[0], 1).fill_(1.0).to('cuda')
+        # Get gradient w.r.t. interpolates
+        gradients = torch.autograd.grad(
+            outputs=d_interpolates,
+            inputs=interpolates,
+            grad_outputs=fake,
+            create_graph=True,
+            retain_graph=True,
+            only_inputs=True,
+        )[0] # gradient of the first image in the batch , shape = [1, 28, 28]
+        gradients = gradients.view(gradients.size(0), -1).to('cuda') # reshaped : 
+        gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean()
+        # pdb.set_trace()
+        return gradient_penalty
