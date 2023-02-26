@@ -206,7 +206,7 @@ def main(args) :
     
     denoiser_trainer.test(trained_denoiser, datamodule)
     
-    pdb.set_trace()
+    # pdb.set_trace()
     
     # PHASE 3 : 
     print('''
