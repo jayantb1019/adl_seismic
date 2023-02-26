@@ -206,7 +206,7 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         self.gen_label = self.fake_label
         
         
-        self.disc_model = Efficient_Unet_disc(in_ch=1, out_ch=1, negative_slope = self.negative_slope, filter_base = 8 , bias=False)
+        self.disc_model = Efficient_Unet_disc(in_ch=1, out_ch=1, negative_slope = self.negative_slope, filter_base = 32 , bias=False)
         
         self.example_input_array = torch.zeros(self.batch_size, 1, self.patch_size, self.patch_size)
         
