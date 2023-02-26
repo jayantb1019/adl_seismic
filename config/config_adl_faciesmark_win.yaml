@@ -1,0 +1,77 @@
+train : 
+  accelerator : cuda
+  fast_dev_run : false
+  data : 
+    seed : 42
+    patch_size : 32
+    stride  : 32
+    batch_size : 128
+    data_mode : 2d # could be 3d 
+
+    augmentations : true
+
+    train_std_interval : [0.0, 0.9]
+    shuffle : 1024
+    pin_memory : true 
+    drop_last : true 
+    train_valid_ratio : 0.95 
+    
+  
+    noise_mode : gaussian  # could be poisson , mixed, lpf 
+    cutoff_frequency_ratio : 0.15 # butterworth filter
+    noise_factor : 0.5       # [0,1]
+
+    dir : 
+      data_root : Z:\experiments_feb\data\faciesmark
+      train_data_path : train\train_seismic.npy
+      val_data_path : test_once\test1_seismic.npy
+      test_data_path : test_once\test2_seismic.npy
+      train_labels_path : train\train_labels.npy
+      val_labels_path : test_once\test1_labels.npy
+      test_labels_path : test_once\test2_labels.npy
+      logs_folder : Z:\experiments_feb\lightning_log
+  
+  ADL : 
+    epochs : 50
+    print_model : false 
+    use_dropout : false
+    denoiser_lr : 0.00005  # research paper mentions learning rate applicable to denoiser i think. ''We used the Adam algorithm [19] as an optimizer with the 
+    discriminator_lr : 0.00005 
+    optimizer : Adam         # ReduceLRonPlateau scheduler [47].The optimization started with a learning rate of 10 −4 
+    lambda1 : 1 # gen loss + lambda * gan loss
+    lr_scheduler : 
+      type : MultiStepLR 
+      kwargs : 
+        gamma : 0.8
+       
+       # and it was reduced (by the ReduceLRonPlateau scheduler) until the PSNR of validation has stopped improving.
+  
+  denoiser : 
+    model : Efficient_Unet
+    use_dropout : false
+    epochs : 50 
+    lr : 0.0001
+    optimizer: Adam
+    lr_scheduler : 
+      type : MultiStepLR 
+      kwargs : 
+        gamma : 0.8
+
+  discriminator:
+    model : Efficient_Unet_disc
+    epochs : 50
+    lr: 0.0001
+    optimizer: Adam
+    negative_slope: 0.1
+    lr_scheduler : 
+      type : MultiStepLR 
+      kwargs : 
+        gamma : 0.8
+
+test : 
+  model : ADL
+  patch_size : -1
+  batch_size_per_gpu : 1
+  num_sel_imgs : -1
+
+  

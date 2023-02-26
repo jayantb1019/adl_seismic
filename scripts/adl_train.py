@@ -63,6 +63,9 @@ def main(args) :
     
     elif args['loc'] == 'kaggle' : 
         CONFIG_PATH = '/kaggle/working/adl_seismic/config/config_adl_faciesmark_kaggle.yaml'
+
+    elif args['loc'] == 'win' : 
+        CONFIG_PATH = r'Z:\experiments_feb\config\config_adl_faciesmark_win.yaml'
     
     config = get_config(CONFIG_PATH)
     

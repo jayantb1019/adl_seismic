@@ -58,7 +58,7 @@ class Residual_block(nn.Module):
     self.conv2 = nn.Conv2d(out_ch, out_ch, kernel_size=3, stride=1, padding =(1,1), bias=bias)
     self.conv3 = nn.Conv2d(in_ch, out_ch, kernel_size=1, stride=stride, padding =(0,0), bias=bias)
 
-    # self.bn = nn.BatchNorm2d(out_ch)
+    self.bn = nn.InstanceNorm2d(out_ch)
     self.tanh = nn.Tanh()
     
     self.use_dropout = use_dropout 
@@ -66,13 +66,13 @@ class Residual_block(nn.Module):
       self.dropout = nn.Dropout2d(0.1)
 
   def forward(self, inp):
-    # x = self.tanh(self.bn(self.conv1(inp)))
+    x = self.tanh(self.bn(self.conv1(inp)))
 
-    x =  self.tanh(self.conv1(inp))
+    # x =  self.tanh(self.conv1(inp))
 
-    x = self.conv2(x)
+    # x = self.conv2(x)
 
-    # x = self.bn(self.conv2(x)) # the second relu is wrong, corrected
+    x = self.bn(self.conv2(x)) # the second relu is wrong, corrected
 
     # Shortcut Connection
     s = self.conv3(inp)
