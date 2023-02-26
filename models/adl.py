@@ -14,15 +14,15 @@ import sys
 sys.path.append('../utils')
 
 from adl_MODELS import Efficient_Unet_disc , Efficient_Unet
-from adl_loss import Loss_L1 , Loss_PYR, Loss_Hist
+from adl_loss import Loss_L1 , Loss_PYR, Loss_Hist, HingeLoss
 
 #TODO : Change the milestones (list of epoch indices) in MultiStepLR schedulers.
 
-RELU = nn.ReLU(inplace=False)
-HINGE = BinaryHingeLoss().to('cuda')
+# RELU = nn.ReLU(inplace=False)
+# HINGE = BinaryHingeLoss().to('cuda')
 
-def HINGE(preds, target) : # tensor, tensor
-    return torch.mean(torch.max(torch.zeros_like(preds) , torch.ones_like(preds) - preds * target)).to('cuda')
+# def HINGE(preds, target) : # tensor, tensor
+#     return torch.mean(torch.max(torch.zeros_like(preds) , torch.ones_like(preds) - preds * target)).to('cuda')
     
 
 
@@ -146,6 +146,8 @@ class Efficient_U(pl.LightningModule) : # denoiser
         noisy = noisy.to(torch.float32).to(self.device)
 
         denoised, denoised_2, denoised_4 = self(noisy)
+        
+        denoised = torch.clamp(denoised, -1,1) # just a precaution
 
         test_psnr = peak_signal_noise_ratio(denoised.detach(), clean.detach(), data_range=2.0)
         test_ssim = structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, kernel_size = 5, )
@@ -197,6 +199,14 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         self.save_hyperparameters(ignore=['model', 'disc_model'])
         
         self.model = model.eval() # trained denoiser model
+        self.hinge_loss = HingeLoss()
+        
+        # labels
+        self.real_label = 1 
+        self.fake_label = -1 
+        self.gen_label = self.fake_label
+        
+        
         self.disc_model = Efficient_Unet_disc(in_ch=1, out_ch=1, negative_slope = self.negative_slope, filter_base = 16 , bias=False)
         
         self.example_input_array = torch.zeros(self.batch_size, 1, self.patch_size, self.patch_size)
@@ -234,7 +244,9 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
                                 torch.reshape(gt_x4, (B,-1))
                                 ], axis=-1)
         # loss_true = torch.mean(RELU(1.0 - true_ravel)) + torch.mean(RELU(1.0 - torch.reshape(gt_bridge, (B,-1))))# loss ( zero if network output = 1 , else positive value.)
-        loss_true = HINGE(true_ravel, torch.ones_like(true_ravel))
+        # loss_true = nn.HingeEmbeddingLoss(true_ravel, torch.ones_like(true_ravel))
+        loss_true = self.hinge_loss(true_ravel, self.real_label * torch.ones_like(true_ravel))
+        
     
         y = noisy
         y_bridge, y_pred, y_pred_x2, y_pred_x4 = self.disc_model(self.model(y)[0]) # denoised
@@ -251,14 +263,16 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         # loss_pred = torch.mean(RELU(1.0 + (pred_ravel)))  + torch.mean(RELU(1.0 + (torch.reshape(y_bridge, (B,-1))))) # loss ( zero if network output = 0 , else positive value)
 
         # loss_pred = torch.mean(0.0 - (pred_ravel)) + torch.mean(0.0 - (torch.reshape(y_bridge,(B,-1)))) # isn't this correct ? since, we want the predicted loss to be close to zero ?
-        loss_pred = HINGE(pred_ravel, -1 * torch.ones_like(pred_ravel))
+        # loss_pred = HINGE(pred_ravel, -1 * torch.ones_like(pred_ravel))
+        loss_pred = self.hinge_loss(pred_ravel, self.fake_label * torch.ones_like(pred_ravel))
+        
         loss = (loss_true + loss_pred)/2
         
         self.log('disc_train_loss', loss, prog_bar=True )
         self.log('disc_train_true_loss', loss_true)
-        self.log('disc_train_pred_loss', loss_pred)
+        self.log('disc_train_fake_loss', loss_pred)
         
-        return -1 * loss
+        return loss
     
     def validation_step(self, batch, batch_idx, *args, **kwargs) : ## look at this again!! discriminator should train on half a batch of clean and half a batch of denoised
         
@@ -281,13 +295,13 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
     
 
         # loss_true = torch.mean(RELU(1.0 - (true_ravel)))  + torch.mean(RELU(1.0 - (torch.reshape(gt_bridge, (B,-1)))))
-        loss_true = HINGE(true_ravel, torch.ones_like(true_ravel))
+        loss_true = self.hinge_loss(true_ravel, self.real_label * torch.ones_like(true_ravel))
     
         y = noisy
         y_bridge, y_pred, y_pred_x2, y_pred_x4 = self.disc_model(self.model(y)[0])
         B = y.shape[0]
 
-        # Compute the loss for the true sample
+        # Compute the loss for the predicted sample
         pred_ravel = torch.concat([
                             torch.reshape(y_bridge, (B,-1)),
                             torch.reshape(y_pred, (B,-1)), 
@@ -296,15 +310,15 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
                             ], axis=-1)
 
         # loss_pred = torch.mean(RELU(1.0 + (pred_ravel)))  + torch.mean(RELU(1.0 + (torch.reshape(y_bridge, (B,-1)))))
-        loss_pred = HINGE(pred_ravel,-1 * torch.ones_like(pred_ravel))
+        loss_pred = self.hinge_loss(pred_ravel, self.fake_label * torch.ones_like(pred_ravel))
         
         loss = (loss_true + loss_pred)/2
         
         self.log('disc_val_loss', loss, prog_bar=True )
         self.log('disc_val_true_loss', loss_true)
-        self.log('disc_val_pred_loss', loss_pred)
+        self.log('disc_val_fake_loss', loss_pred)
         
-        return -1 * loss
+        return loss
     
 
 
@@ -343,6 +357,7 @@ class ADL(pl.LightningModule) : # Full ADL model
         super().__init__() 
         self.denoiser = denoiser 
         self.discriminator = discriminator 
+        self.hinge_loss = HingeLoss()
         
         data_config = config['train']['data']
         self.patch_size = data_config['patch_size']
@@ -359,7 +374,12 @@ class ADL(pl.LightningModule) : # Full ADL model
         
         print('gan lambda : ', self.lambda1)
         
-        self.save_hyperparameters(ignore=['denoiser', 'discriminator'])
+        # labels 
+        self.real_label = 1
+        self.fake_label = -1
+        self.gen_label = self.fake_label
+        
+        self.save_hyperparameters(ignore=['denoiser', 'discriminator', 'hinge_loss'])
         self.example_input_array = torch.zeros(self.batch_size, 1, self.patch_size, self.patch_size)
         
         
@@ -404,7 +424,9 @@ class ADL(pl.LightningModule) : # Full ADL model
             # fake_loss = torch.mean(RELU(1.0 - (fake_ravel))) 
             # fake_loss = -1 * HINGE(fake_ravel, torch.ones_like(fake_ravel))
             
-            fake_loss = -1 * torch.mean(fake_ravel)
+            # fake_loss = -1 * torch.mean(fake_ravel)
+            
+            fake_loss = self.hinge_loss(fake_ravel, self.gen_label * torch.ones_like(fake_ravel)) # based on geometric gan hinge loss 
             
             # model loss
             
@@ -446,7 +468,7 @@ class ADL(pl.LightningModule) : # Full ADL model
             B = fake.shape[0]
 
             real_bridge, real_x0, real_x2, real_x4 = self.discriminator(real)
-            fake_bridge, fake_x0, fake_x2 , fake_x4 = self.discriminator(fake.detach())
+            fake_bridge, fake_x0, fake_x2 , fake_x4 = self.discriminator(fake)
             
             
             real_ravel =  torch.concat([
@@ -458,7 +480,9 @@ class ADL(pl.LightningModule) : # Full ADL model
             
             # real_loss = torch.mean(RELU(1.0 - (real_ravel))) + torch.mean(RELU(1.0 - (torch.reshape(real_bridge, (B,-1)))))
             # real_loss = HINGE(real_ravel, torch.ones_like(real_ravel))
-            real_loss = torch.max(torch.zeros_like(real_ravel), torch.ones_like(real_ravel) - torch.mean(real_ravel))
+            # real_loss = torch.max(torch.zeros_like(real_ravel), torch.ones_like(real_ravel) - torch.mean(real_ravel))
+            
+            real_loss = self.hinge_loss(real_ravel, self.real_label * torch.ones_like(real_ravel))
             
             fake_ravel =  torch.concat([
                                 torch.reshape(fake_bridge, (B,-1)),
@@ -470,12 +494,16 @@ class ADL(pl.LightningModule) : # Full ADL model
             # fake_loss = torch.mean(RELU(1.0 + fake_ravel)) + torch.mean(RELU(1.0 + (torch.reshape(fake_bridge, (B,-1)))))
             
             # fake_loss = HINGE(fake_ravel, -1 * torch.ones_like(fake_ravel))
-            fake_loss = torch.max(torch.zeros_like(fake_ravel), torch.ones_like(fake_ravel) + torch.mean(fake_ravel))
+            # fake_loss = torch.max(torch.zeros_like(fake_ravel), torch.ones_like(fake_ravel) + torch.mean(fake_ravel))
+            
+            fake_loss = self.hinge_loss(fake_ravel, self.fake_label * torch.ones_like(fake_ravel))
             
             loss = (real_loss + fake_loss) / 2 
             
             
             self.log('disc_train_loss', loss, prog_bar = True)
+            self.log('disc_real_loss', real_loss)
+            self.log('disc_fake_loss', fake_loss)
             # pdb.set_trace()
             
             return loss
@@ -506,7 +534,8 @@ class ADL(pl.LightningModule) : # Full ADL model
         
         # fake_loss = torch.mean(RELU(1.0 - (fake_ravel))) + torch.mean(RELU(1.0 - (torch.reshape(fake_bridge, (B,-1)))))
         # fake_loss = -1 * HINGE(fake_ravel, torch.ones_like(fake_ravel)) 
-        fake_loss = -1 * torch.mean(fake_ravel)
+        # fake_loss = -1 * torch.mean(fake_ravel)
+        fake_loss = self.hinge_loss(fake_ravel, self.gen_label * torch.ones_like(fake_ravel))
 
         l1_loss_1 = Loss_L1(clean, denoised)
         l1_loss_2 = Loss_L1(clean_2, denoised_2)
@@ -523,6 +552,7 @@ class ADL(pl.LightningModule) : # Full ADL model
         self.log('denoiser_val_l1_loss', l1_loss_1 + l1_loss_2 + l1_loss_4)
         self.log('denoiser_val_pyr_loss', pyr_loss_1 + pyr_loss_2 + pyr_loss_4)
         self.log('denoiser_val_hist_loss', hist_loss_1 + hist_loss_2 + hist_loss_4)
+        self.log('denoiser_val_gan_loss', fake_loss)
         
         val_loss =  (l1_loss_1 + l1_loss_2 + l1_loss_4 + pyr_loss_1 + pyr_loss_2 + pyr_loss_4 + hist_loss_1 + hist_loss_2 + hist_loss_4 )+  self.lambda1 * fake_loss   
         # val_loss = fake_loss 
@@ -538,6 +568,8 @@ class ADL(pl.LightningModule) : # Full ADL model
         noisy = noisy.to(torch.float32).to(self.device)
 
         denoised, denoised_2, denoised_4 = self.denoiser(noisy)
+        
+        denoised = torch.clamp(denoised, -1,1) # Just a precaution
 
         test_psnr = peak_signal_noise_ratio(denoised.detach(), clean.detach(), data_range=2.0)
         test_ssim = structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, kernel_size = 5, )

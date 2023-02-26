@@ -151,7 +151,7 @@ class Disc_Transformer(nn.Module): # returns a pixel level classification
     self.classifier = nn.Sequential(
         nn.Conv2d(ch_tmp, out_ch, kernel_size=1,stride=1, bias=False), # pixel level classification
         # nn.Sigmoid() # since our image range is tanh
-        nn.Tanh()
+        # nn.Tanh()
     )
 
 
