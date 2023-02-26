@@ -127,7 +127,8 @@ class HingeLoss(nn.Module) :
  
     def forward(self, input, target):
         #
-        input = input.view(-1)
+        # input = input.view(-1) 
+        # target = target.view(-1)
 
         #
         assert input.dim() == target.dim()
