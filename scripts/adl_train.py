@@ -185,7 +185,8 @@ def main(args) :
         # check_val_every_n_epoch = 5
          # precision=32   
         track_grad_norm=2, # this will plot norm-2 to tensorboard, if its increasing, then the gradients would explode.
-        detect_anomaly = True # detects nans in forward / backward pass and stops training
+        detect_anomaly = True, # detects nans in forward / backward pass and stops training
+        gradient_clip_val=0.5
     )
     
     # denoiser_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_20_02_2023_12_50_02/checkpoints/epoch=49-step=2750.ckpt'
@@ -228,7 +229,8 @@ def main(args) :
         log_every_n_steps = 5,   
         # overfit_batches=10,
         track_grad_norm=2, # this will plot norm-2 to tensorboard, if its increasing, then the gradients would explode.
-        detect_anomaly = True # detects nans in forward / backward pass and stops training
+        detect_anomaly = True, # detects nans in forward / backward pass and stops training
+        gradient_clip_val=0.5
         # check_val_every_n_epoch = 5
         # precision=32 
     )
