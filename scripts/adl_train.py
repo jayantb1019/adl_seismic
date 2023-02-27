@@ -154,7 +154,8 @@ def main(args) :
         log_every_n_steps = 5,
         # precision=32
         track_grad_norm=2, # this will plot norm-2 to tensorboard, if its increasing, then the gradients would explode.
-        detect_anomaly = True # detects nans in forward / backward pass and stops training
+        detect_anomaly = True, # detects nans in forward / backward pass and stops training
+        gradient_clip_val=0.5
     )
     
     
