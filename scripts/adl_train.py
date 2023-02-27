@@ -19,7 +19,7 @@ torch.cuda.empty_cache()
 
 import pytorch_lightning as pl 
 from pytorch_lightning.callbacks.progress import TQDMProgressBar
-from pytorch_lightning.callbacks import RichModelSummary
+from pytorch_lightning.callbacks import RichModelSummary, ModelCheckpoint
 from pytorch_lightning.loggers import TensorBoardLogger
 
 import sys 
@@ -90,6 +90,7 @@ def main(args) :
 
     modelSummaryCb = RichModelSummary(max_depth=-1)
     tqdmProgressCb = TQDMProgressBar(refresh_rate=20)
+    modelCheckpointCb = ModelCheckpoint(save_top_k = 5, monitor = 'val_ssim', mode='max')
     
     # logger 
     timestamp = datetime.now().strftime("%d_%m_%Y_%H_%M_%S")
@@ -130,6 +131,7 @@ def main(args) :
           DENOISER WARM UP
           ================
           ''')
+    
     denoiser = Efficient_U(config)
     
     if args['loc'] == 'kaggle' : 
@@ -139,12 +141,12 @@ def main(args) :
     if args['loc'] == 'colab' : 
         denoiser_checkpoint_path = '/content/drive/MyDrive/adl_seismic/lightning_logs/denoiser/adl_21_02_2023_15_09_14_best/checkpoints/epoch=49-step=27300.ckpt'
         
-    # denoiser_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_21_02_2023_19_23_55/checkpoints/epoch=49-step=27300.ckpt' # workstation
-    #trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
+    # denoiser_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_27_02_2023_17_42_45/checkpoints/epoch=49-step=250.ckpt' # workstation
+    # trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
     denoiser_trainer = pl.Trainer(
         accelerator = accelerator,
         devices=1, 
-        callbacks = [modelSummaryCb, tqdmProgressCb ],
+        callbacks = [modelSummaryCb, tqdmProgressCb , modelCheckpointCb ],
         logger = denoiser_logger,
         max_epochs=config['train']['denoiser']['epochs'], 
         fast_dev_run=fast_dev_run,          
@@ -161,7 +163,9 @@ def main(args) :
     
     denoiser_trainer.fit(denoiser, datamodule)
     denoiser_trainer.test(denoiser, datamodule)
-    # results = denoiser_trainer.test(denoiser, datamodule)
+    # denoiser_trainer.test(trained_denoiser, datamodule)
+
+    pdb.set_trace()
 
     # print(results)
     
@@ -195,7 +199,7 @@ def main(args) :
     
     # denoiser_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_20_02_2023_12_50_02/checkpoints/epoch=49-step=2750.ckpt'
     
-    
+    # denoiser_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_27_02_2023_14_32_03/checkpoints/epoch=49-step=250.ckpt'
     
     denoiser_checkpoint_path = get_checkpoint('denoiser',experiment_version, config)
     trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
@@ -223,7 +227,7 @@ def main(args) :
     adl_trainer = pl.Trainer(
         accelerator = accelerator,
         devices=1, 
-        callbacks = [modelSummaryCb, tqdmProgressCb ],
+        callbacks = [modelSummaryCb, tqdmProgressCb, modelCheckpointCb  ],
         logger = adl_logger,
         max_epochs=config['train']['ADL']['epochs'], 
         fast_dev_run=fast_dev_run, 
