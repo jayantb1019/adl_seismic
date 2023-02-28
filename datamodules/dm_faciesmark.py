@@ -37,26 +37,26 @@ class FaciesMarkDataset(Dataset) :
         self.augmentations = training_config['augmentations']
         
         print('Augmentations', self.augmentations)
+
+        # Data Augmentation transforms. NOTE : A.Compose is not working with multiple A.Lambda, hence they are split into multiple transform sets
         
-        self.transforms = A.Compose(
-            [
-                A.Lambda(name='polarity_reversal', image=polarity_reversal, p=0.2), 
-                A.OneOf([
-                    A.Lambda(name='horizontal_flip', image = horizontal_flip, p = 0.2),
-                    A.Lambda(name='rotate_patch', image = rotate_patch, p = 0.2),
-                ]),
-                 
-                A.OneOf([
-                    A.Lambda(name='random_trace_dropout', image = random_trace_dropout, p = 0.2),
-                    A.Lambda(name='random_high_noise_trace', image = random_high_noise_trace, p = 0.2),
-                    A.Lambda(name='random_trace_shuffle', image = random_trace_shuffle, p = 0.2),
-                ]), 
-                A.OneOf([
-                    A.Lambda(name='random_amp_attenuation', image = random_amp_attenuation , p = 0.2), 
-                    A.Lambda(name='random_amp_shift', image = random_amp_shift , p = 0.2), 
-                ])
-            ]
-        )
+        self.tset_1 = A.Lambda(name='polarity_reversal', image=polarity_reversal, p = 0.2 )
+        self.tset_2 =  A.OneOf([
+                            A.Lambda(name='horizontal_flip', image = horizontal_flip, p = 0.2 ),
+                        A.Lambda(name='rotate_patch', image = rotate_patch, p = 0.2 ),
+                        ])
+        self.tset_3 =  A.OneOf([
+                            A.Lambda(name='random_trace_dropout', image = random_trace_dropout, p = 0.2 ),
+                            A.Lambda(name='random_high_noise_trace', image = random_high_noise_trace, p = 0.2 ),
+                            A.Lambda(name='random_trace_shuffle', image = random_trace_shuffle, p = 0.2 ),
+                        ])
+
+        self.tset_4 = A.OneOf([
+                            A.Lambda(name='random_amp_attenuation', image = random_amp_attenuation , p = 0.2 ), 
+                            A.Lambda(name='random_amp_shift', image = random_amp_shift , p = 0.2 ), 
+                        ])
+
+
         
 
     def __len__(self) : 
@@ -94,13 +94,19 @@ class FaciesMarkDataset(Dataset) :
         
         data_shape = data_.shape
         
-        # ensure shape consistency even in edge patches
         
         # add augmentations for training and val
         if self.augmentations : 
             if (self.mode == 'train') or (self.mode == 'val') : 
-                data_, noisy_data_ = self.transforms(image = np.stack([data_, noisy_data_], axis=0))['image']
+                data_stack = np.stack([data_, noisy_data_], axis=0)
+                aug_1 = self.tset_1(image=data_stack )['image'] 
+                aug_2 = self.tset_2(image = np.stack(aug_1, axis=0))['image']
+                aug_3 = self.tset_3(image = np.stack(aug_2, axis=0))['image']
+                aug_4 = self.tset_4(image = np.stack(aug_3, axis=0))['image']
+
+                data_, noisy_data_ = aug_4
         
+        # ensure shape consistency even in edge patches
         
         if self.data_mode == '3d' : 
             data[ : data_shape[0], :data_shape[1], :data_shape[2]] = data_

@@ -10,7 +10,7 @@ def get_config(config_path) :
     f.close()
     return config
 
-def patch_index_generation(dataset_path, stride, info_path, mode = '2d') : 
+def patch_index_generation(dataset_path, stride, info_path, mode = '2d', train=True) : # when train = True , only valid patches i.e  patches with patch_size are index, when train = False, i.e inference, edge patches are indexed too.
     
     if not os.path.exists(dataset_path) :
         print(f'{info_path} provided for patch gen does not exist')
@@ -28,14 +28,17 @@ def patch_index_generation(dataset_path, stride, info_path, mode = '2d') :
     
         patch_info_file = open(info_path, 'a')
         patch_info_file.writelines(['patch_index,iline,xline_start,twt_start\n'])
+
+        n_xlines_lim = n_xlines - stride + 1 if train else n_xlines
+        n_twt_lim = n_twt - stride + 1 if train else n_twt
         
         # write patch indexes
         patch_index = 0
         if mode == '2d' : 
             for iline in range(n_ilines) : 
-                for xline_start in range(0,n_xlines,stride) : 
+                for xline_start in range(0,n_xlines_lim,stride) : 
 
-                    for twt_start in range(0,n_twt,stride) :
+                    for twt_start in range(0,n_twt_lim,stride) :
                         
                         patch_info_file.write(','.join([str(patch_index),str(iline),str(xline_start), str(twt_start)]) + '\n')
                         

@@ -24,8 +24,8 @@ class FeatureExtrator(nn.Module):
     self.conv3 = nn.Conv2d(in_channels=in_ch, out_channels=num_filter//2, 
                            kernel_size=7, dilation=(4,4), padding=12,bias=bias)
     
-    # self.bn1 = nn.BatchNorm2d(int(1.5*num_filter))
-    # self.bn2 = nn.BatchNorm2d(num_filter)
+    self.bn1 = nn.InstanceNorm2d(int(1.5*num_filter))
+    self.bn2 = nn.InstanceNorm2d(num_filter)
     self.tanh = nn.Tanh()
 
     self.conv4 = nn.Conv2d(in_channels=int(1.5*num_filter), out_channels=num_filter, 
@@ -36,11 +36,11 @@ class FeatureExtrator(nn.Module):
     # self.leakyrelu = nn.LeakyReLU(negative_slope=leaky_relu_alpha)
   def forward(self, inp):
     x = torch.cat((self.conv1(inp), self.conv2(inp), self.conv3(inp)), dim=1)
-    # x = self.tanh(self.bn1(x))
-    x = self.tanh(x)
+    x = self.tanh(self.bn1(x))
+    # x = self.tanh(x)
 
-    # x = self.bn2(self.conv4(x))
-    x=self.conv4(x)
+    x = self.bn2(self.conv4(x))
+    # x=self.conv4(x)
     # Shortcut Connection
     s = self.conv5(inp)
 
@@ -58,21 +58,23 @@ class Residual_block(nn.Module):
     self.conv2 = nn.Conv2d(out_ch, out_ch, kernel_size=3, stride=1, padding =(1,1), bias=bias)
     self.conv3 = nn.Conv2d(in_ch, out_ch, kernel_size=1, stride=stride, padding =(0,0), bias=bias)
 
-    # self.bn = nn.InstanceNorm2d(out_ch)
+    self.bn = nn.InstanceNorm2d(out_ch)
     self.tanh = nn.Tanh()
     
     self.use_dropout = use_dropout 
     if self.use_dropout : 
-      self.dropout = nn.Dropout2d(0.1)
+      self.dropout = nn.Dropout2d(0.5)
 
   def forward(self, inp):
-    # x = self.tanh(self.bn(self.conv1(inp)))
+    x = self.tanh(self.bn(self.conv1(inp)))
 
-    x =  self.tanh(self.conv1(inp))
+    # x =  self.tanh(self.conv1(inp))
 
-    x = self.conv2(x)
+    # x = self.conv2(x)
 
-    # x = self.bn(self.conv2(x)) # the second relu is wrong, corrected
+    x = self.bn(self.conv2(x)) # the second relu is wrong, corrected
+
+    x = self.dropout(x) if self.use_dropout else x
 
     # Shortcut Connection
     s = self.conv3(inp)
@@ -83,7 +85,7 @@ class Residual_block(nn.Module):
     # activation is performed in model file
     x =  self.tanh(x + s) 
     
-    return self.dropout(x) if self.use_dropout else x
+    return x
 
 
 # Decoder block
@@ -98,14 +100,14 @@ class Decoder_block(nn.Module):
     
     self.use_dropout = use_dropout 
     if self.use_dropout : 
-      self.dropout = nn.Dropout2d(0.1)
+      self.dropout = nn.Dropout2d(0.5)
 
   def forward(self, inp, skip_features):
     x = self.up_sampling(inp)
-
+    x = self.dropout(x) if self.use_dropout else x
     x = torch.cat((x, skip_features), dim=1)
     x = self.resblock(x)
-    return self.dropout(x) if self.use_dropout else x
+    return x
 
 # Transformer for denoiser
 class Transformer(nn.Module):
@@ -123,8 +125,9 @@ class Transformer(nn.Module):
     self.layers = nn.Sequential(*layers)
 
     self.classifier = nn.Sequential(
-        nn.Conv2d(ch_tmp, out_ch, kernel_size=1,stride=1, bias=False),
         nn.Tanh(),
+        nn.Conv2d(ch_tmp, out_ch, kernel_size=1,stride=1, bias=False),
+        # nn.Tanh(),
     )
 
   def forward(self, x):
@@ -149,16 +152,20 @@ class Disc_Transformer(nn.Module): # returns a pixel level classification
 
     self.negative_slope = negative_slope
     self.classifier = nn.Sequential(
+        nn.Tanh(),
         nn.Conv2d(ch_tmp, out_ch, kernel_size=1,stride=1, bias=False), # pixel level classification
         # nn.Sigmoid() # since our image range is tanh
         # nn.Tanh()
     )
 
+    # self.prelu = nn.PReLU(init=1)
+
 
   def forward(self, x):
     x =  self.layers(x)
-    # x = F.leaky_relu(x, negative_slope=self.negative_slope, inplace=False)
-    x = F.tanh(x)
+    x = F.leaky_relu(x, negative_slope=self.negative_slope, inplace=False)
+    # x = self.prelu(x)
+    # x = F.tanh(x)
     x = self.classifier(x)
     # x = F.tanh(x)
     return x
@@ -260,7 +267,7 @@ class Efficient_Unet_disc(nn.Module):
     self.bridge = Residual_block(f3, fb, stride=2) #[B,f3,W/4,H/4]-->[B,fb,W/8,H/8] 96
     
     self.bridge_map = nn.Conv2d(fb, fb, kernel_size=1, stride=1, padding =(0,0), bias=bias) # pixel level classification of the bridge
-    self.sigmoid = nn.Sigmoid()
+    # self.sigmoid = nn.Sigmoid()
     
 
     #Decoder1

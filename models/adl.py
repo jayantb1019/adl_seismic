@@ -43,6 +43,9 @@ class Efficient_U(pl.LightningModule) : # denoiser
         self.use_dropout = denoiser_config['use_dropout']
         
         self.model = Efficient_Unet(in_ch=1, out_ch = 1, filter_base=32, bias=False, use_dropout = self.use_dropout)
+
+        # reflection padding for tests
+        self.reflection_pad = nn.ReflectionPad2d(self.patch_size // 2)
         
         self.save_hyperparameters()
         
@@ -91,7 +94,7 @@ class Efficient_U(pl.LightningModule) : # denoiser
         train_loss = l1_loss_1 + l1_loss_2 + l1_loss_4 + pyr_loss_1 + pyr_loss_2 + pyr_loss_4 + hist_loss_1 + hist_loss_2 + hist_loss_4
         self.log('train_loss', train_loss, prog_bar=True)
 
-        train_psnr = peak_signal_noise_ratio(denoised.detach(), clean.detach(), data_range=2.0)
+        train_psnr = peak_signal_noise_ratio(denoised.detach(), clean.detach())
         train_ssim = structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, kernel_size = 5, )
         # train_msssim = multiscale_structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, data_range=2.0)
 
@@ -128,7 +131,7 @@ class Efficient_U(pl.LightningModule) : # denoiser
        
         self.log('val_loss', val_loss, prog_bar=True)
 
-        val_psnr = peak_signal_noise_ratio(denoised.detach(), clean.detach(), data_range=2.0)
+        val_psnr = peak_signal_noise_ratio(denoised.detach(), clean.detach())
         val_ssim = structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, kernel_size = 5, )
         # val_msssim = multiscale_structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, data_range=2.0)
 
@@ -144,11 +147,17 @@ class Efficient_U(pl.LightningModule) : # denoiser
         clean = clean.to(torch.float32).to(self.device)
         noisy = noisy.to(torch.float32).to(self.device)
 
-        denoised, denoised_2, denoised_4 = self(noisy)
-        
-        denoised = torch.clamp(denoised, -1,1) # just a precaution
+        noisy_refpad = self.reflection_pad(noisy) # perform inference on a padded patch 
 
-        test_psnr = peak_signal_noise_ratio(denoised.detach(), clean.detach(), data_range=2.0)
+        denoised, denoised_2, denoised_4 = self.model(noisy_refpad)
+        
+        denoised = torch.clamp(denoised, -1,1) # Just a precaution
+
+        denoised = denoised[:,:, self.patch_size //2 : self.patch_size //2 + self.patch_size , self.patch_size //2 : self.patch_size //2 + self.patch_size ] # recover original patch
+
+        
+
+        test_psnr = peak_signal_noise_ratio(denoised.detach(), clean.detach())
         test_ssim = structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, kernel_size = 5, )
 
         self.log('test_psnr', test_psnr)
@@ -244,7 +253,11 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
                                 ], axis=-1)
         # loss_true = torch.mean(RELU(1.0 - true_ravel)) + torch.mean(RELU(1.0 - torch.reshape(gt_bridge, (B,-1))))# loss ( zero if network output = 1 , else positive value.)
         # loss_true = nn.HingeEmbeddingLoss(true_ravel, torch.ones_like(true_ravel))
-        loss_true = self.hinge_loss(true_ravel, self.real_label * torch.ones_like(true_ravel))
+
+        # one sided label smoothing , according to https://arxiv.org/abs/1701.00160
+        real_label = (self.real_label * 0.1 * torch.randint(9,13,(1,))).type_as(true_ravel)
+
+        loss_true = self.hinge_loss(true_ravel, real_label * torch.ones_like(true_ravel))
         
     
         y = noisy
@@ -265,7 +278,7 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         # loss_pred = HINGE(pred_ravel, -1 * torch.ones_like(pred_ravel))
         loss_pred = self.hinge_loss(pred_ravel, self.fake_label * torch.ones_like(pred_ravel))
         
-        loss = (loss_true + loss_pred)/2
+        loss = (loss_true + loss_pred) /2
         
         self.log('disc_train_loss', loss, prog_bar=True )
         self.log('disc_train_true_loss', loss_true)
@@ -294,7 +307,11 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
     
 
         # loss_true = torch.mean(RELU(1.0 - (true_ravel)))  + torch.mean(RELU(1.0 - (torch.reshape(gt_bridge, (B,-1)))))
-        loss_true = self.hinge_loss(true_ravel, self.real_label * torch.ones_like(true_ravel))
+
+        # one sided label smoothing , according to https://arxiv.org/abs/1701.00160
+        real_label = (self.real_label * 0.1 * torch.randint(9,13,(1,))).type_as(true_ravel)
+
+        loss_true = self.hinge_loss(true_ravel, real_label * torch.ones_like(true_ravel))
     
         y = noisy
         y_bridge, y_pred, y_pred_x2, y_pred_x4 = self.disc_model(self.model(y)[0])
@@ -311,7 +328,7 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         # loss_pred = torch.mean(RELU(1.0 + (pred_ravel)))  + torch.mean(RELU(1.0 + (torch.reshape(y_bridge, (B,-1)))))
         loss_pred = self.hinge_loss(pred_ravel, self.fake_label * torch.ones_like(pred_ravel))
         
-        loss = (loss_true + loss_pred)/2
+        loss = (loss_true + loss_pred) /2
         
         self.log('disc_val_loss', loss, prog_bar=True )
         self.log('disc_val_true_loss', loss_true)
@@ -328,7 +345,7 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         
         lr = self.lr
 
-        optimiser = torch.optim.Adam(self.disc_model.parameters(), lr = lr)
+        optimiser = torch.optim.Adam(self.disc_model.parameters(), lr = lr , betas=(0.5,0.999))
         # lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimiser, 
         #                                                     milestones = list(range(15,50,5)), 
         #                                                     gamma=self.lr_scheduler_gamma, verbose=True)
@@ -377,6 +394,9 @@ class ADL(pl.LightningModule) : # Full ADL model
         self.real_label = 1
         self.fake_label = -1
         self.gen_label = self.fake_label
+
+        # reflection padding for tests
+        self.reflection_pad = nn.ReflectionPad2d(self.patch_size // 2)
         
         self.save_hyperparameters(ignore=['denoiser', 'discriminator', 'hinge_loss'])
         self.example_input_array = torch.zeros(self.batch_size, 1, self.patch_size, self.patch_size)
@@ -480,8 +500,11 @@ class ADL(pl.LightningModule) : # Full ADL model
             # real_loss = torch.mean(RELU(1.0 - (real_ravel))) + torch.mean(RELU(1.0 - (torch.reshape(real_bridge, (B,-1)))))
             # real_loss = HINGE(real_ravel, torch.ones_like(real_ravel))
             # real_loss = torch.max(torch.zeros_like(real_ravel), torch.ones_like(real_ravel) - torch.mean(real_ravel))
+
+            # one sided label smoothing , according to https://arxiv.org/abs/1701.00160
+            real_label = (self.real_label * 0.1 * torch.randint(9,13,(1,))).type_as(real_ravel)
             
-            real_loss = self.hinge_loss(real_ravel, self.real_label * torch.ones_like(real_ravel))
+            real_loss = self.hinge_loss(real_ravel, real_label * torch.ones_like(real_ravel))
             
             fake_ravel =  torch.concat([
                                 torch.reshape(fake_bridge, (B,-1)),
@@ -497,7 +520,7 @@ class ADL(pl.LightningModule) : # Full ADL model
             
             fake_loss = self.hinge_loss(fake_ravel, self.fake_label * torch.ones_like(fake_ravel))
             
-            loss = (real_loss + fake_loss) 
+            loss = (real_loss + fake_loss) /2
             # + 10 * compute_gradient_penalty(self.discriminator, real_ravel, fake_ravel) # lambda gp = 10
             
             
@@ -558,6 +581,13 @@ class ADL(pl.LightningModule) : # Full ADL model
         # val_loss = fake_loss 
 
         self.log('denoiser_val_loss', val_loss, prog_bar=True)
+
+        val_psnr = peak_signal_noise_ratio(denoised.detach(), clean.detach())
+        val_ssim = structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, kernel_size = 5, )
+        # val_msssim = multiscale_structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, data_range=2.0)
+
+        self.log('val_psnr', val_psnr)
+        self.log('val_ssim', val_ssim)
         
         return val_loss
             
@@ -567,11 +597,15 @@ class ADL(pl.LightningModule) : # Full ADL model
         clean = clean.to(torch.float32).to(self.device)
         noisy = noisy.to(torch.float32).to(self.device)
 
-        denoised, denoised_2, denoised_4 = self.denoiser(noisy)
+        noisy_refpad = self.reflection_pad(noisy) # perform inference on a padded patch 
+
+        denoised, denoised_2, denoised_4 = self.denoiser(noisy_refpad)
         
         denoised = torch.clamp(denoised, -1,1) # Just a precaution
 
-        test_psnr = peak_signal_noise_ratio(denoised.detach(), clean.detach(), data_range=2.0)
+        denoised = denoised[:,:,self.patch_size //2 : self.patch_size //2 + self.patch_size , self.patch_size //2 : self.patch_size //2 + self.patch_size ] # recover original patch
+
+        test_psnr = peak_signal_noise_ratio(denoised.detach(), clean.detach()) # let's not give data range
         test_ssim = structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, kernel_size = 5, )
 
         self.log('test_psnr', test_psnr)
@@ -584,11 +618,11 @@ class ADL(pl.LightningModule) : # Full ADL model
         print('adl denoiser lr :', self.denoiser_lr)
         print('adl discrminator lr :', self.discriminator_lr)
         opt_denoiser = torch.optim.Adam(
-            self.denoiser.parameters(), lr = self.denoiser_lr
+            self.denoiser.parameters(), lr = self.denoiser_lr , betas=(0.5,0.999) # according to https://arxiv.org/abs/1511.06434
         )
         
         opt_discriminator = torch.optim.Adam(
-            self.discriminator.parameters(), lr = self.discriminator_lr
+            self.discriminator.parameters(), lr = self.discriminator_lr , betas=(0.5,0.999)
         )
         
         denoiser_lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(opt_denoiser, mode='min', patience = 5, threshold=0.001, verbose=True)

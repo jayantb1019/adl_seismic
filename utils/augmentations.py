@@ -42,7 +42,7 @@ def random_trace_dropout(patch, **kwargs) : # drops one trace
     
     pct_dropouts = 0.05
     
-    for i in range(int(pct_dropouts * patch.shape[1])) : 
+    for i in range(int(pct_dropouts * clean.shape[1])) : 
         trace_no = np.random.randint(clean.shape[1])
 
         clean[: , trace_no] = 0 
@@ -57,7 +57,10 @@ def random_high_noise_trace(patch, **kwargs) : # adds random noise to a few trac
     pct_high_noise = 0.05
     
     for i in range(int(pct_high_noise * clean.shape[1])) : 
-        trace_no = np.random.randint(patch.shape[1])
+        trace_no = np.random.randint(0,clean.shape[1]-2) 
+        # print(trace_no)
+        if trace_no <= 0 : 
+            continue
         trace_data_clean = clean[:, trace_no]
         trace_data_noisy = noisy[:, trace_no]
         clean[:, trace_no] = add_noise(trace_data_clean, noise_factor=0.2)
@@ -73,11 +76,15 @@ def random_amp_attenuation(patch, **kwargs) : # adds random noise to a few trace
     pct_atten = 0.1 # 10 % of points
     amp_scaler = 0.5 # (0, 0.9)
     
-    random_inlines = np.random.randint(0,clean.shape[1], int(pct_atten * clean.shape[1]))
-    random_twt = np.random.randint(0,clean.shape[0] , int(pct_atten * clean.shape[1]) )
+    random_inlines = np.random.randint(0,clean.shape[1]-1, int(pct_atten * clean.shape[1]))
+    random_twt = np.random.randint(0,clean.shape[0]-1 , int(pct_atten * clean.shape[1]) )
+
     
     # print(random_inlines, random_twt)
     for twt,iline in zip(random_twt, random_inlines) : 
+        if (twt <= 0) or (iline <= 0) : 
+            continue 
+
         clean[twt,iline] =  clean[twt,iline] / amp_scaler
         noisy[twt,iline] =  noisy[twt,iline] / amp_scaler
     
@@ -91,7 +98,7 @@ def random_trace_shuffle(patch, **kwargs) : # adds random noise to a few traces
     pct_atten = 0.05 # 10 % of tracces
     neighborhood = 4
     
-    shuffle_mask = np.zeros_like(clean)
+    # shuffle_mask = np.zeros_like(clean)
     
     def _find_iline(clean, iline_orig, neighborhood) : 
         iline_new = None
@@ -99,20 +106,23 @@ def random_trace_shuffle(patch, **kwargs) : # adds random noise to a few traces
             iline_new = np.random.randint(-neighborhood,  neighborhood)
             iline_new = iline_orig + iline_new 
             
-            if iline_new >= clean.shape[1] : 
+            if (iline_new >= clean.shape[1]) or (iline_new < 0) : 
                 continue 
             else : 
                 break 
         return iline_new
     
-    random_inlines = np.random.randint(0,patch.shape[1], int(pct_atten * patch.shape[1]))
+    if (clean.shape[1] - 1 <= 0) : # for edge patches, avoid augmentation
+        return clean, noisy 
+
+    random_inlines = np.random.randint(0,clean.shape[1]-1, int(pct_atten * clean.shape[1]))
     
     for iline in random_inlines : 
-        shuffle_mask[:, iline] = -1
+        # shuffle_mask[:, iline] = -1
         
         iline_new = _find_iline(clean, iline, neighborhood)
         
-        shuffle_mask[:, iline_new] = 1
+        # shuffle_mask[:, iline_new] = 1
         
         new_data = clean[:,iline_new]
         clean[:,iline_new] =  clean[:,iline]
@@ -137,15 +147,20 @@ def random_amp_shift(patch, **kwargs) : # adds random noise to a few traces
     clean, noisy = patch
     pct_atten = 0.5 # 10 % of points
     
-    mask = np.zeros_like(patch)
+    # mask = np.zeros_like(patch)
+
     
-    random_inlines = np.random.randint(0,patch.shape[1], int(pct_atten * patch.shape[1]))
-    random_twt = np.random.randint(0,patch.shape[0] , int(pct_atten * patch.shape[1]) )
+    random_inlines = np.random.randint(0,clean.shape[1]-1, int(pct_atten * clean.shape[1]))
+    random_twt = np.random.randint(0,clean.shape[0]-1 , int(pct_atten * clean.shape[1]) )
     
     # print(random_inlines, random_twt)
     for twt,iline in zip(random_twt, random_inlines) : 
+
+        if (twt <= 0) or (iline <= 0) :
+            continue
         
-        mask[twt,iline] = 1
+        # print(twt,iline)
+        # mask[twt,iline] = 1
         
         rand_amp_shift = np.random.choice([-1,1]) * 0.1 * np.random.randint(0,9)
         
