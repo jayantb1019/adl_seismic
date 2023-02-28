@@ -1,8 +1,0 @@
-max_epochs : 
-lr : 
-print_model : 
-metrics : 
-loss : 
-write_path : 
-checkpoints_path : 
-val_per_step : 

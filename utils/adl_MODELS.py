@@ -137,7 +137,7 @@ class Transformer(nn.Module):
 
 # Transformer for discriminator
 class Disc_Transformer(nn.Module): # returns a pixel level classification
-  def __init__(self, in_ch, out_ch, repeat, negative_slope= 0.01, stride=1, bias=False):
+  def __init__(self, in_ch, out_ch, repeat, negative_slope= 0.2, stride=1, bias=False): # negative_slope = 0.2 according to DCGAN recommendation
     super(Disc_Transformer,self).__init__()
 
     layers = []
@@ -152,7 +152,7 @@ class Disc_Transformer(nn.Module): # returns a pixel level classification
 
     self.negative_slope = negative_slope
     self.classifier = nn.Sequential(
-        nn.Tanh(),
+        # nn.Tanh(),
         nn.Conv2d(ch_tmp, out_ch, kernel_size=1,stride=1, bias=False), # pixel level classification
         # nn.Sigmoid() # since our image range is tanh
         # nn.Tanh()
@@ -245,14 +245,14 @@ class Efficient_Unet(nn.Module):
 
 
 class Efficient_Unet_disc(nn.Module):
-  def __init__(self, in_ch, out_ch, negative_slope, filter_base=8, bias=False):
+  def __init__(self, in_ch, out_ch, negative_slope, filter_base=16, bias=False):
     super(Efficient_Unet_disc, self).__init__()
-    f1 = 3 * filter_base
-    f2 = 4*filter_base
-    f3 = 5*filter_base
-    f4 = 5*filter_base
+    f1 = filter_base
+    f2 = 2*f1
+    f3 = 2*f2
+    f4 = 2*f3
     f5 = f4
-    fb = 6 * filter_base
+    fb = f5
 
     #Encoder1
     self.down_0 = Residual_block(in_ch, f1, stride=1) #[B,C,W,H]-->[B,f1,W,H] 48
@@ -268,7 +268,7 @@ class Efficient_Unet_disc(nn.Module):
     
     self.bridge_map = nn.Conv2d(fb, fb, kernel_size=1, stride=1, padding =(0,0), bias=bias) # pixel level classification of the bridge
     # self.sigmoid = nn.Sigmoid()
-    
+    self.leaky_relu = nn.LeakyReLU(negative_slope=negative_slope, inplace=False)
 
     #Decoder1
     self.Decoder_block1 = Decoder_block(fb, f3, f3) #[B,fb,W/8,H/8]-->[B,f3,W/4,H/4] 80
@@ -298,6 +298,7 @@ class Efficient_Unet_disc(nn.Module):
 
     #Bridge
     b = self.bridge(s3)
+    b = self.leaky_relu(b)
     bridge_map = self.bridge_map(b)
     # bridge_map = self.sigmoid(bridge_map) # since our image is in [-1,1] 
 

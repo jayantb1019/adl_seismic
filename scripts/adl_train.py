@@ -126,23 +126,24 @@ def main(args) :
     # pdb.set_trace()
 
     #PHASE 1 : 
-    print('''
-          ================
-          DENOISER WARM UP
-          ================
-          ''')
+    # print('''
+    #       ================
+    #       DENOISER WARM UP
+    #       ================
+    #       ''')
     
-    denoiser = Efficient_U(config)
+    # denoiser = Efficient_U(config)
     
-    if args['loc'] == 'kaggle' : 
-        denoiser_checkpoint_path = '/kaggle/working/adl_seismic/checkpoints/denoiser.ckpt' # colab
-    if args['loc'] == 'workstation' : 
-        denoiser_checkpoint_path = '/local1/workspace/adl_seismic/adl_seismic/lightning_logs/denoiser/adl_21_02_2023_15_09_14_best/checkpoints/epoch=49-step=27300.ckpt' # colab
-    if args['loc'] == 'colab' : 
-        denoiser_checkpoint_path = '/content/drive/MyDrive/adl_seismic/lightning_logs/denoiser/adl_21_02_2023_15_09_14_best/checkpoints/epoch=49-step=27300.ckpt'
+    # if args['loc'] == 'kaggle' : 
+    #     denoiser_checkpoint_path = '/kaggle/working/adl_seismic/checkpoints/denoiser.ckpt' # colab
+    # if args['loc'] == 'workstation' : 
+    #     denoiser_checkpoint_path = '/local1/workspace/adl_seismic/adl_seismic/lightning_logs/denoiser/adl_21_02_2023_15_09_14_best/checkpoints/epoch=49-step=27300.ckpt' # colab
+    # if args['loc'] == 'colab' : 
+    #     denoiser_checkpoint_path = '/content/drive/MyDrive/adl_seismic/lightning_logs/denoiser/adl_21_02_2023_15_09_14_best/checkpoints/epoch=49-step=27300.ckpt'
         
-    # denoiser_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_27_02_2023_17_42_45/checkpoints/epoch=49-step=250.ckpt' # workstation
-    # trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
+    denoiser_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_27_02_2023_18_16_16/checkpoints/epoch=59-step=27360.ckpt' # workstation
+    print(f"Denoiser Checkpoint : {denoiser_checkpoint_path}")
+    trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
     denoiser_trainer = pl.Trainer(
         accelerator = accelerator,
         devices=1, 
@@ -161,22 +162,22 @@ def main(args) :
     )
     
     
-    denoiser_trainer.fit(denoiser, datamodule)
-    denoiser_trainer.test(denoiser, datamodule)
+    # denoiser_trainer.fit(denoiser, datamodule)
+    # denoiser_trainer.test(denoiser, datamodule)
     # denoiser_trainer.test(trained_denoiser, datamodule)
 
-    pdb.set_trace()
+    # pdb.set_trace()
 
     # print(results)
     
     
     
     # PHASE 2 : 
-    print('''
-          =====================
-          DISCRIMINATOR WARM UP
-          =====================
-          ''')
+    # print('''
+    #       =====================
+    #       DISCRIMINATOR WARM UP
+    #       =====================
+    #       ''')
 
     discriminator_trainer = pl.Trainer(
         accelerator = accelerator,
@@ -201,19 +202,19 @@ def main(args) :
     
     # denoiser_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_27_02_2023_14_32_03/checkpoints/epoch=49-step=250.ckpt'
     
-    denoiser_checkpoint_path = get_checkpoint('denoiser',experiment_version, config)
-    trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
+    # denoiser_checkpoint_path = get_checkpoint('denoiser',experiment_version, config)
+    # trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_checkpoint_path)
     
     # pdb.set_trace()
     
     
-    discriminator = Efficient_U_DISC(trained_denoiser, config)
+    # discriminator = Efficient_U_DISC(trained_denoiser, config)
     
     
-    discriminator_trainer.fit(discriminator, datamodule) 
+    # discriminator_trainer.fit(discriminator, datamodule) 
     # denoiser_trainer.test(trained_denoiser, datamodule)
     
-    denoiser_trainer.test(trained_denoiser, datamodule)
+    # denoiser_trainer.test(trained_denoiser, datamodule)
     
     # pdb.set_trace()
     
@@ -246,13 +247,13 @@ def main(args) :
     
     
     # denoiser_checkpoint_path = get_checkpoint('denoiser', experiment_version, config)
-    discriminator_checkpoint_path = get_checkpoint('discriminator', experiment_version, config)
+    # discriminator_checkpoint_path = get_checkpoint('discriminator', experiment_version, config)
     
     # pdb.set_trace()
     
     # denoiser_checkpoint_path = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/lightning_logs/denoiser_20230213_epoch=49-step=27600.ckpt'
-    # discriminator_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/discriminator/adl_22_02_2023_12_48_38/checkpoints/epoch=39-step=21840.ckpt'
-
+    discriminator_checkpoint_path = '/local1/workspace/adl_seismic/lightning_logs/discriminator/adl_28_02_2023_15_25_21/epoch=10-step=5016_saved.ckpt'
+    print(f"Discrminator Checkpoint :{discriminator_checkpoint_path}")
     # pdb.set_trace()
     
     # trained_denoiser = Efficient_U.load_from_checkpoint(checkpoint_path = denoiser_checkpoint_path, config = config)

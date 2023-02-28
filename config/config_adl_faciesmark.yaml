@@ -70,6 +70,14 @@ train :
 
 test : 
   model : ADL
+  accelerator : 'cuda'
+  patch_size : -1
+  batch_size_per_gpu : 1
+  num_sel_imgs : -1
+
+predict : 
+  model : ADL
+  accelerator : 'cuda'
   patch_size : -1
   batch_size_per_gpu : 1
   num_sel_imgs : -1
