@@ -11,7 +11,7 @@ MAE_obj.to('cuda')
 def Loss_L1(x_gt, yhat) :
     return MAE_obj.__call__(x_gt, yhat)
 
-def Loss_PYR(x_gt, yhat, levels=5) : 
+def Loss_PYR(x_gt, yhat, levels=3) : 
     '''Pyramid Loss
     A pyramidal loss function using ATW. 
     ATW is a stationary Wavelet transform that decomposes an image into several levels 
