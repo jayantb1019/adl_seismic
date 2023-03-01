@@ -1,6 +1,7 @@
 import torch 
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision 
 import pytorch_lightning as pl 
 
 
@@ -46,6 +47,7 @@ class Efficient_U(pl.LightningModule) : # denoiser
 
         # reflection padding for tests
         self.reflection_pad = nn.ReflectionPad2d(self.patch_size // 2)
+        self.hflipper = torchvision.transforms.RandomHorizontalFlip(p=1)
         
         self.save_hyperparameters()
         
@@ -66,6 +68,8 @@ class Efficient_U(pl.LightningModule) : # denoiser
     def training_step(self, batch, batch_idx, *args, **kwargs):
         
         clean, noisy, _ = batch 
+
+        # pdb.set_trace()
         
         clean = clean.to(torch.float32).to(self.device)
         noisy = noisy.to(torch.float32).to(self.device)
@@ -162,6 +166,23 @@ class Efficient_U(pl.LightningModule) : # denoiser
 
         self.log('test_psnr', test_psnr)
         self.log('test_ssim', test_ssim)
+
+
+    def predict_step(self, batch, batch_idx, *args, **kwargs) : 
+
+        clean, noisy, _ = batch 
+        clean = clean.to(torch.float32).to(self.device)
+        noisy = noisy.to(torch.float32).to(self.device)
+
+        # test time augmentations
+        noisy_pr = -1 * noisy
+        noisy_flipped = self.hflipper(noisy)
+        noisy_pr_flipped = -1 * noisy_flipped
+
+
+
+
+
 
     # print(test_psnr, test_ssim)   
     
@@ -631,7 +652,7 @@ class ADL(pl.LightningModule) : # Full ADL model
         
         return [
             {
-                'optimizer' : opt_denoiser, 'frequency' : 10 , 
+                'optimizer' : opt_denoiser, 'frequency' : 5 , 
                 'lr_scheduler' : {
                     'scheduler' : denoiser_lr_scheduler, 
                     'monitor'   : 'denoiser_val_loss', 

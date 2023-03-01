@@ -3,9 +3,9 @@ train :
   fast_dev_run : false
   data : 
     seed : 42
-    patch_size : 32
-    stride  : 32
-    batch_size : 128
+    patch_size : 128
+    stride  : 128
+    batch_size : 4
     data_mode : 2d # could be 3d 
 
     augmentations : true
