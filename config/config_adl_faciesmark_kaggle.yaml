@@ -3,9 +3,9 @@ train :
   fast_dev_run : false
   data : 
     seed : 42
-    patch_size : 32
-    stride  : 32
-    batch_size : 128
+    patch_size : 128
+    stride  : 128
+    batch_size : 16
     data_mode : 2d # could be 3d 
 
     augmentations : false
@@ -19,7 +19,7 @@ train :
   
     noise_mode : gaussian  # could be poisson , mixed, lpf 
     cutoff_frequency_ratio : 0.15 # butterworth filter
-    noise_factor : 0.5       # [0,1]
+    noise_factor : 0.9       # [0,1]
 
     dir : 
       data_root : /kaggle/working/adl_seismic/data/

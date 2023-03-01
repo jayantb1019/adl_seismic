@@ -82,5 +82,4 @@ predict :
   batch_size_per_gpu : 1
   num_sel_imgs : -1
 
-
   
