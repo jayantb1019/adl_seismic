@@ -19,7 +19,7 @@ torch.cuda.empty_cache()
 
 import pytorch_lightning as pl 
 from pytorch_lightning.callbacks.progress import TQDMProgressBar
-from pytorch_lightning.callbacks import RichModelSummary, ModelCheckpoint
+from pytorch_lightning.callbacks import RichModelSummary, ModelCheckpoint, EarlyStopping
 from pytorch_lightning.loggers import TensorBoardLogger
 
 import sys 
@@ -179,10 +179,12 @@ def main(args) :
     #       =====================
     #       ''')
 
+    earlyStoppingCb = EarlyStopping(monitor='disc_val_loss', mode='min', stopping_threshold = 0.5) # stops warm up at 0.5
+
     discriminator_trainer = pl.Trainer(
         accelerator = accelerator,
         devices=1, 
-        callbacks = [modelSummaryCb, tqdmProgressCb ],
+        callbacks = [modelSummaryCb, tqdmProgressCb , earlyStoppingCb ],
         logger = discriminator_logger,
         max_epochs=config['train']['discriminator']['epochs'], 
         fast_dev_run=fast_dev_run, 

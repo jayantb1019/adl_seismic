@@ -7,12 +7,14 @@ from datetime import datetime
 import pdb 
 import yaml 
 import numpy as np 
+from tqdm import tqdm
 
 import torch 
 import torch.nn as nn 
 from torchvision.transforms import RandomHorizontalFlip
 
 from rich import traceback 
+import gc 
 
 torch.cuda.empty_cache()
 
@@ -72,6 +74,8 @@ def load_data(config, test_data_path) : # assuming it is a numpy array in ILINE,
     test_data = np.load(test_data_path)
 
     accelerator = config['test']['accelerator']
+
+    test_data = test_data.transpose([0,2,1])
 
     return torch.from_numpy(test_data).to(accelerator)
 
@@ -158,26 +162,48 @@ def main(args=None) :
     model = load_model(config)
 
     # data
-    noisy = load_data(config, test_data_path) # tensor with dims (iline, xline, twt)
-    noisy_t = noisy.transpose(2,1) 
-    noisy_t_c = torch.unsqueeze(noisy_t, 1)
+    noisy = load_data(config, test_data_path) # tensor with dims (iline, twt, xline)
+    denoised =torch.zeros_like(noisy)
 
-    # TEST TIME AUGMENTATIONS
-    noisy_t_c_pr = -1 * noisy_t_c # polarity reversal 
+    for i in tqdm(range(noisy.shape[0]), desc='Denoising ilines') :
 
-    # horizontal_flipper 
-    hflipper = RandomHorizontalFlip(p=1).to('cuda')
+        noisy_c = torch.unsqueeze(torch.unsqueeze(noisy[i], 0),0)
 
-    noisy_t_c_flipped = hflipper(noisy_t_c) # horizontal flipping
+        # TEST TIME AUGMENTATIONS
+        noisy_c_pr = -1 * noisy_c # polarity reversal 
 
-    noisy_t_pr_flipped = -1 * noisy_t_c_flipped # horizontal flipping and polarity reversal 
+        # horizontal_flipper 
+        hflipper = RandomHorizontalFlip(p=1).to('cuda')
 
-    denoised_t_c = denoise(model, noisy_t_c, config)
-    denoised_t_c_pr = -1 * denoise(model, noisy_t_c_pr, config)
-    denoised_t_c_flipped = hflipper(denoise(model, noisy_t_c_flipped, config)) # flip back after denoising 
-    denoised_t_c_pr_flipped = -1 * hflipper(denoise(model, noisy_t_pr_flipped, config)) # flip back and reverse polarise
+        noisy_c_flipped = hflipper(noisy_c) # horizontal flipping
 
-    denoised_t_c = (denoised_t_c + denoised_t_c_pr, denoised_t_c_flipped + denoised_t_c_pr_flipped) / 4 
+        noisy_pr_flipped = -1 * noisy_c_flipped # horizontal flipping and polarity reversal 
+
+        
+
+        denoised_c = denoise(model, noisy_c, config)   
+
+
+        denoised_c_pr = -1 * denoise(model, noisy_c_pr, config)
+        denoised_c_flipped = hflipper(denoise(model, noisy_c_flipped, config)) # flip back after denoising 
+        denoised_c_pr_flipped = -1 * hflipper(denoise(model, noisy_pr_flipped, config)) # flip back and reverse polarise
+
+
+        denoised[i] = (torch.squeeze(denoised_c + denoised_c_pr + denoised_c_flipped + denoised_c_pr_flipped) /4.0)
+
+        noisy_ = None 
+        noisy_c = None 
+        noisy_c_pr = None 
+        noisy_c_flipped = None 
+        noisy_pr_flipped = None 
+        noisy_pr_flipped = None 
+        denoised_c = None 
+        denoised_c_pr = None 
+        denoised_c_flipped = None 
+        denoised_c_pr_flipped = None 
+
+        torch.cuda.empty_cache()
+        gc.collect()
 
     pdb.set_trace()
 
