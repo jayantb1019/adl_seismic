@@ -163,10 +163,10 @@ def main(args) :
     
     
     denoiser_trainer.fit(denoiser, datamodule)
-    denoiser_trainer.test(denoiser, datamodule)
+    # denoiser_trainer.test(denoiser, datamodule)
     # denoiser_trainer.test(trained_denoiser, datamodule)
 
-    pdb.set_trace()
+    # pdb.set_trace()
 
     # print(results)
     
@@ -211,7 +211,7 @@ def main(args) :
     discriminator = Efficient_U_DISC(trained_denoiser, config)
     
     
-    discriminator_trainer.fit(discriminator, datamodule) 
+    # discriminator_trainer.fit(discriminator, datamodule) 
     # denoiser_trainer.test(trained_denoiser, datamodule)
     
     # denoiser_trainer.test(trained_denoiser, datamodule)
@@ -262,10 +262,10 @@ def main(args) :
 
     adl = ADL(trained_denoiser, trained_discriminator, config)
     
-    adl_trainer.fit(adl, datamodule) 
-    adl_trainer.test(adl, datamodule) 
+    # adl_trainer.fit(adl, datamodule) 
+    # adl_trainer.test(adl, datamodule) 
     
-    pdb.set_trace()
+    # pdb.set_trace()
     
 
 if __name__ == '__main__' : 

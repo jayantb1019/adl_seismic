@@ -48,7 +48,7 @@ train :
   
   denoiser : 
     model : Efficient_Unet
-    use_dropout : true
+    use_dropout : false
     epochs : 50 
     lr : 0.0001
     optimizer: Adam
