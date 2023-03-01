@@ -215,7 +215,7 @@ class Efficient_U_DISC(pl.LightningModule) :  # discriminator
         self.gen_label = self.fake_label
         
         
-        self.disc_model = Efficient_Unet_disc(in_ch=1, out_ch=1, negative_slope = self.negative_slope, filter_base = 16 , bias=False)
+        self.disc_model = Efficient_Unet_disc(in_ch=1, out_ch=1, negative_slope = self.negative_slope, filter_base = 8 , bias=False)
         
         self.example_input_array = torch.zeros(self.batch_size, 1, self.patch_size, self.patch_size)
         
@@ -631,20 +631,20 @@ class ADL(pl.LightningModule) : # Full ADL model
         
         return [
             {
-                'optimizer' : opt_denoiser, 
+                'optimizer' : opt_denoiser, 'frequency' : 10 , 
                 'lr_scheduler' : {
                     'scheduler' : denoiser_lr_scheduler, 
                     'monitor'   : 'denoiser_val_loss', 
-                    'frequency' : 1 
+                    'frequency' : 1
                 }
             }, 
             {
-                'optimizer' : opt_discriminator, 
-                'lr_scheduler' : {
-                    'scheduler' : discriminator_lr_scheduler, 
-                    'monitor'   : 'disc_train_loss', 
-                    'frequency' : 1 
-                }
+                'optimizer' : opt_discriminator, 'frequency' : 1,
+                # 'lr_scheduler' : {
+                #     'scheduler' : discriminator_lr_scheduler, 
+                #     'monitor'   : 'disc_train_loss', 
+                #     'frequency' : 11 
+                # }
             }
             
         ]
