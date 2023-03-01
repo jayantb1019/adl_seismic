@@ -19,7 +19,7 @@ train :
   
     noise_mode : gaussian  # could be poisson , mixed, lpf 
     cutoff_frequency_ratio : 0.15 # butterworth filter
-    noise_factor : 0.1       # [0,1]
+    noise_factor : 0.9       # [0,1]
 
     dir : 
       data_root : /content/adl_seismic/data/

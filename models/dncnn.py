@@ -30,7 +30,7 @@ class DnCNNLightning(pl.LightningModule) :
         self.noise_mode = training_config['noise_mode']
         self.noise_factor = training_config['noise_factor']
         
-        self.model = DnCNN(in_nc = 1, out_nc=1, nc=64, nb=self.nlayers, act_mode ='BR')
+        self.model = DnCNN(in_nc = 1, out_nc=1, nc=64, nb=self.nlayers, act_mode ='IL') # instance normalisation and leaky relu
         
         self.loss_function = torch.nn.MSELoss() if (training_config['loss_function'] == 'l2') else torch.nn.L1Loss()
         
@@ -90,7 +90,7 @@ class DnCNNLightning(pl.LightningModule) :
         eps = self.eps
 
         optimiser = torch.optim.Adam(self.parameters(), lr = lr, betas=(b1, b2), eps=eps)
-        lr_scheduler = torch.optim.lr_scheduler.StepLR(optimiser, step_size = 50, gamma=0.1)
+        lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimiser, mode='min', patience = 3, threshold=0.001, verbose=True)
 
         return {
             'optimizer' : optimiser, 
