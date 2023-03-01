@@ -174,10 +174,24 @@ class Efficient_U(pl.LightningModule) : # denoiser
         clean = clean.to(torch.float32).to(self.device)
         noisy = noisy.to(torch.float32).to(self.device)
 
-        # test time augmentations
-        noisy_pr = -1 * noisy
-        noisy_flipped = self.hflipper(noisy)
-        noisy_pr_flipped = -1 * noisy_flipped
+        # denoise original
+
+        noisy_refpad = self.reflection_pad(noisy) # perform inference on a padded patch 
+
+        denoised,_,_ = self.model(noisy_refpad)
+        
+        denoised = torch.clamp(denoised, -1,1) # Just a precaution
+
+        denoised = denoised[:,:, self.patch_size //2 : self.patch_size //2 + self.patch_size , self.patch_size //2 : self.patch_size //2 + self.patch_size ] # recover original patch
+
+        return denoised
+        
+
+        # # test time augmentations
+        # noisy_pr = -1 * noisy
+        # noisy_flipped = self.hflipper(noisy)
+        # noisy_pr_flipped = -1 * noisy_flipped
+
 
 
 
