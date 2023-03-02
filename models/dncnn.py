@@ -4,6 +4,7 @@ import pdb
 import torch 
 import torch.nn as nn 
 import torch.nn.functional as F
+import torchvision
 
 
 from torchmetrics.functional import structural_similarity_index_measure, peak_signal_noise_ratio
@@ -11,7 +12,7 @@ import pytorch_lightning as pl
 
 
 import sys 
-sys.path.append('/local1/workspace/seismic_image_enhancement/githubrepos/KAIR-master/models')
+sys.path.append('../githubrepos/KAIR-master/models')
 
 from network_dncnn import DnCNN
 
@@ -31,12 +32,15 @@ class DnCNNLightning(pl.LightningModule) :
         
         self.model = DnCNN(in_nc = 1, out_nc=1, nc=64, nb=self.nlayers, act_mode ='IL') # instance normalisation and leaky relu
         
-        # self.loss_function = torch.nn.MSELoss() if (training_config['loss_function'] == 'l2') else torch.nn.L1Loss()
+        self.loss_function = torch.nn.MSELoss() if (training_config['dncnn']['loss_function'] == 'l2') else torch.nn.L1Loss()
         
         self.save_hyperparameters() 
         
         self.example_input_array = torch.zeros(self.batch_size, 1, self.patch_size, self.patch_size).double()
         
+        # reflection padding for tests
+        self.reflection_pad = nn.ReflectionPad2d(self.patch_size // 2)
+        self.hflipper = torchvision.transforms.RandomHorizontalFlip(p=1)
         
     def forward(self, x) : 
         return self.model(x) # ( model output is noise )
@@ -68,17 +72,21 @@ class DnCNNLightning(pl.LightningModule) :
     
     def test_step(self,batch, batch_idx) : 
         clean, noisy, _ = batch 
-        noise = self(noisy)
+        
         
         loss = self.loss_function(noisy - noise, clean)
         self.log('test_loss', loss)
         
-        with torch.no_grad() : 
-            psnr = peak_signal_noise_ratio(noisy - noise, clean)
-            ssim = structural_similarity_index_measure(noisy-noise, clean)
-            
-            self.log('test_psnr', psnr)
-            self.log('test_ssim', ssim)
+        noisy_refpad = self.reflection_pad(noisy) # perform inference on a padded patch 
+        noise = self(noisy_refpad)
+        noise = torch.clamp(noise, -1,1)
+        noise = noise[:,:, self.patch_size //2 : self.patch_size //2 + self.patch_size , self.patch_size //2 : self.patch_size //2 + self.patch_size ] # recover original patch
+        
+        psnr = peak_signal_noise_ratio((noisy - noise).detach(), clean.detach())
+        ssim = structural_similarity_index_measure((noisy-noise).detach(), clean.detach())
+        
+        self.log('test_psnr', psnr)
+        self.log('test_ssim', ssim)
         
         # return loss
     

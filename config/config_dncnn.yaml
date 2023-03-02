@@ -31,6 +31,7 @@ train :
       train_labels_path : train/train_labels.npy
       val_labels_path : test_once/test1_labels.npy
       test_labels_path : test_once/test2_labels.npy
+      logs_folder : /content/dncnn/lightning_logs
 
   dncnn : 
     loss_function : 'l1' # could be l2
