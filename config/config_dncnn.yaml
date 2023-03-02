@@ -1,23 +1,41 @@
-dir : 
-  data_root : /Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/data/faciesmark
-  train_data_path : train/train_seismic.npy
-  val_data_path : test_once/test1_seismic.npy
-  test_data_path : test_once/test2_seismic.npy
-  train_labels_path : train/train_labels.npy
-  val_labels_path : test_once/test1_labels.npy
-  test_labels_path : test_once/test2_labels.npy
+train : 
+  accelerator : cuda
+  fast_dev_run : false
+  epochs : 100 
 
-data_mode : 2d # could be 3d 
-patch_size : 32 
-stride  : 32
-batch_size : 128 
-noise_mode : gaussian  # could be poisson , mixed, lpf 
-cutoff_frequency_ratio : 0.15 # butterworth filter
-noise_factor : 0.5       # [0,1]
+  data : 
+    seed : 42
+    patch_size : 128
+    stride  : 128
+    batch_size : 4
+    data_mode : 2d # could be 3d 
 
-loss_function : 'l1' # could be l2
-nlayers : 20 
-lr : 0.0002
-b1 : 0.5
-b2 : 0.999
+    augmentations : false
+
+    train_std_interval : [0.0, 0.9]
+    shuffle : 1024
+    pin_memory : true 
+    drop_last : true 
+    train_valid_ratio : 0.95 
+    
+  
+    noise_mode : gaussian  # could be poisson , mixed, lpf 
+    cutoff_frequency_ratio : 0.15 # butterworth filter
+    noise_factor : 0.5       # [0,1]
+
+    dir : 
+      data_root : /Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/data/faciesmark
+      train_data_path : train/train_seismic.npy
+      val_data_path : test_once/test1_seismic.npy
+      test_data_path : test_once/test2_seismic.npy
+      train_labels_path : train/train_labels.npy
+      val_labels_path : test_once/test1_labels.npy
+      test_labels_path : test_once/test2_labels.npy
+
+  dncnn : 
+    loss_function : 'l1' # could be l2
+    nlayers : 20 
+    lr : 0.0001
+    b1 : 0.5
+    b2 : 0.999
 

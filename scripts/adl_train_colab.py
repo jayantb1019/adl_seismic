@@ -19,7 +19,7 @@ torch.cuda.empty_cache()
 
 import pytorch_lightning as pl 
 from pytorch_lightning.callbacks.progress import TQDMProgressBar
-from pytorch_lightning.callbacks import RichModelSummary, ModelCheckpoint
+from pytorch_lightning.callbacks import RichModelSummary, ModelCheckpoint, StochasticWeightAveraging
 from pytorch_lightning.loggers import TensorBoardLogger
 
 import sys 
@@ -147,7 +147,7 @@ def main(args) :
     denoiser_trainer = pl.Trainer(
         accelerator = accelerator,
         devices=1, 
-        callbacks = [modelSummaryCb, tqdmProgressCb , modelCheckpointCb ],
+        callbacks = [modelSummaryCb, tqdmProgressCb , modelCheckpointCb, StochasticWeightAveraging(swa_lrs=1e-2) ],
         logger = denoiser_logger,
         max_epochs=config['train']['denoiser']['epochs'], 
         fast_dev_run=fast_dev_run,          

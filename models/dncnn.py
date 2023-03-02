@@ -18,21 +18,20 @@ from network_dncnn import DnCNN
 class DnCNNLightning(pl.LightningModule) : 
     def __init__(self, training_config) :
         super().__init__()
-        
-        self.batch_size = training_config['batch_size']
-        self.patch_size = training_config['patch_size']
-        self.lr = training_config['lr']
-        self.b1 = training_config['b1']
-        self.b2 = training_config['b2']
-        self.eps = training_config['eps']
+        training_config = training_config['train']
+        self.batch_size = training_config['data']['batch_size']
+        self.patch_size = training_config['data']['patch_size']
+        self.lr = training_config['dncnn']['lr']
+        self.b1 = training_config['dncnn']['b1']
+        self.b2 = training_config['dncnn']['b2']
 
-        self.nlayers = training_config['nlayers']
-        self.noise_mode = training_config['noise_mode']
-        self.noise_factor = training_config['noise_factor']
+        self.nlayers = training_config['dncnn']['nlayers']
+        self.noise_mode = training_config['data']['noise_mode']
+        self.noise_factor = training_config['data']['noise_factor']
         
         self.model = DnCNN(in_nc = 1, out_nc=1, nc=64, nb=self.nlayers, act_mode ='IL') # instance normalisation and leaky relu
         
-        self.loss_function = torch.nn.MSELoss() if (training_config['loss_function'] == 'l2') else torch.nn.L1Loss()
+        # self.loss_function = torch.nn.MSELoss() if (training_config['loss_function'] == 'l2') else torch.nn.L1Loss()
         
         self.save_hyperparameters() 
         
@@ -87,9 +86,8 @@ class DnCNNLightning(pl.LightningModule) :
         lr = self.lr
         b1 = self.b1
         b2 = self.b2
-        eps = self.eps
 
-        optimiser = torch.optim.Adam(self.parameters(), lr = lr, betas=(b1, b2), eps=eps)
+        optimiser = torch.optim.Adam(self.parameters(), lr = lr, betas=(b1, b2))
         lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimiser, mode='min', patience = 3, threshold=0.001, verbose=True)
 
         return {
