@@ -21,10 +21,10 @@ train :
   
     noise_mode : gaussian  # could be poisson , mixed, lpf 
     cutoff_frequency_ratio : 0.15 # butterworth filter
-    noise_factor : 0.5       # [0,1]
+    noise_factor : 0.9       # [0,1]
 
     dir : 
-      data_root : /Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/data/faciesmark
+      data_root : /local1/workspace/adl_seismic/data/faciesmark
       train_data_path : train/train_seismic.npy
       val_data_path : test_once/test1_seismic.npy
       test_data_path : test_once/test2_seismic.npy
@@ -35,7 +35,10 @@ train :
 
   dncnn : 
     loss_function : 'l1' # could be l2
+    bias : false
     nlayers : 20 
+    w : 64
+    act : IL
     lr : 0.0001
     b1 : 0.5
     b2 : 0.999

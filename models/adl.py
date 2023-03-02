@@ -10,6 +10,7 @@ from torchmetrics.functional import peak_signal_noise_ratio, structural_similari
 from torchmetrics.classification import BinaryHingeLoss
 
 import pdb 
+import gc
 
 import sys 
 sys.path.append('../utils')
@@ -174,17 +175,47 @@ class Efficient_U(pl.LightningModule) : # denoiser
         clean = clean.to(torch.float32).to(self.device)
         noisy = noisy.to(torch.float32).to(self.device)
 
+        denoised_final  = torch.zeros_like(noisy)
+
+
         # denoise original
 
         noisy_refpad = self.reflection_pad(noisy) # perform inference on a padded patch 
-
         denoised,_,_ = self.model(noisy_refpad)
-        
         denoised = torch.clamp(denoised, -1,1) # Just a precaution
-
         denoised = denoised[:,:, self.patch_size //2 : self.patch_size //2 + self.patch_size , self.patch_size //2 : self.patch_size //2 + self.patch_size ] # recover original patch
+        denoised_final += denoised 
+        denoised = None 
+        noisy_refpad = None
+        gc.collect()
 
-        return denoised
+        # denoise horizontal flipped version
+        noisy_hf = self.hflipper(noisy) # flip once
+        noisy_hf_refpad = self.reflection_pad(noisy_hf)
+        denoised_hf, _, _ = self.model(noisy_hf_refpad)
+        denoised_hf = torch.clamp(denoised_hf, -1,1)
+        denoised_hf = denoised_hf[:,:, self.patch_size //2 : self.patch_size //2 + self.patch_size , self.patch_size //2 : self.patch_size //2 + self.patch_size ] # recover original patch
+        denoised_final += self.hflipper(denoised_hf) # flip result again
+
+        denoised_hf = None 
+        noisy_hf_refpad = None 
+        denoised_hf = None
+        gc.collect()
+
+        # denoise polarity reversed version 
+        noisy_pr = -1 * noisy # reverse polarity
+        noisy_pr_refpad = self.reflection_pad(noisy_pr)
+        denoised_pr, _, _ = self.model(noisy_pr_refpad)
+        denoised_pr = torch.clamp(denoised_pr, -1,1)
+        denoised_pr = denoised_hf[:,:, self.patch_size //2 : self.patch_size //2 + self.patch_size , self.patch_size //2 : self.patch_size //2 + self.patch_size ] # recover original patch
+        denoised_final += -1 * denoised_pr # reverse polarity again
+
+        denoised_pr = None 
+        noisy_pr_refpad = None 
+        denoised_pr = None
+        gc.collect()
+
+        return denoised_final / 3
         
 
         # # test time augmentations

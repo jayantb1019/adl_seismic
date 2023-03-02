@@ -1,0 +1,37 @@
+dir :
+  workspace: /local1/workspace/random_denoising/
+  data: data
+  train_patch_info : train_patches_info_$$stride$$.csv
+  test_patch_info : test_patches_info_$$stride$$.csv
+  val_patch_info : val_patches_info_$$stride$$.csv
+  all_patch_info : patches_info_$$stride$$.csv # all patches index
+  mute_mask_info : mute_info.csv # all mute information
+  global_stats  : global_stats.h5
+  logs : lightning_logs
+  logs_subdir : noise2self
+  results : /local1/workspace/random_denoising/results/noise2self
+
+global_seed : 42 
+
+byte_locations : 
+  INLINE_3D : 189
+  CROSSLINE_3D : 193
+  CDP_X : 181
+  CDP_Y : 185
+  MUTE_START : 111
+  MUTE_END : 113
+
+patch_based_training : 
+  patch_size : 128
+  stride : 128
+  batch_size : 1
+  noise_factors : [0.1,0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1]
+  noise_modes : ['gaussian', 'poisson']
+  split_factor : [0.80,0.10,0.10]
+
+dncnn : 
+  num_layers : 14 # 12-14 is optimum
+  mask_width  : 4  # 4-6 
+  learning_rate : [0.001, 0.01] # max , min
+  max_epochs : 100
+  device : 'cuda:0'

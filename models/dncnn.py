@@ -12,7 +12,7 @@ import pytorch_lightning as pl
 
 
 import sys 
-sys.path.append('../githubrepos/KAIR-master/models')
+sys.path.append('../githubrepos/KAIR/models')
 
 from network_dncnn import DnCNN
 
@@ -27,16 +27,20 @@ class DnCNNLightning(pl.LightningModule) :
         self.b2 = training_config['dncnn']['b2']
 
         self.nlayers = training_config['dncnn']['nlayers']
+        self.bias = training_config['dncnn']['bias']
+        self.w = training_config['dncnn']['w']
+        self.act = training_config['dncnn']['act']
+
         self.noise_mode = training_config['data']['noise_mode']
         self.noise_factor = training_config['data']['noise_factor']
         
-        self.model = DnCNN(in_nc = 1, out_nc=1, nc=64, nb=self.nlayers, act_mode ='IL') # instance normalisation and leaky relu
+        self.model = DnCNN(in_nc = 1, out_nc=1, nc=self.w, nb=self.nlayers, act_mode =self.act, bias=self.bias) # IL = instance normalisation and leaky relu
         
         self.loss_function = torch.nn.MSELoss() if (training_config['dncnn']['loss_function'] == 'l2') else torch.nn.L1Loss()
         
         self.save_hyperparameters() 
         
-        self.example_input_array = torch.zeros(self.batch_size, 1, self.patch_size, self.patch_size).double()
+        self.example_input_array = torch.zeros(self.batch_size, 1, self.patch_size, self.patch_size)
         
         # reflection padding for tests
         self.reflection_pad = nn.ReflectionPad2d(self.patch_size // 2)
@@ -51,6 +55,13 @@ class DnCNNLightning(pl.LightningModule) :
         
         loss = self.loss_function(noisy - noise, clean)
         self.log('train_loss', loss, prog_bar=True)
+
+        with torch.no_grad() : 
+            psnr = peak_signal_noise_ratio(noisy - noise, clean)
+            ssim = structural_similarity_index_measure(noisy-noise, clean)
+            
+            self.log('train_psnr', psnr)
+            self.log('train_ssim', ssim)
         
         return loss
     
