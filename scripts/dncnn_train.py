@@ -74,6 +74,12 @@ def main(args) :
     if args['bias'] != None :
         config['train']['dncnn']['bias'] = args['bias'] 
 
+    if args['loc'] == 'colab' : 
+        config['train']['data']['dir']['data_root'] = '/content/adl_seismic/data/faciesmark'
+
+    elif args['loc'] == 'workstation' : 
+        config['train']['data']['dir']['data_root'] = '/local1/workspace/adl_seismic/data/faciesmark'
+
     
 
     limit_train_batches = args['lt']
