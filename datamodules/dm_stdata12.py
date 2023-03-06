@@ -8,14 +8,17 @@ from torch.utils.data import Dataset, DataLoader
 import pytorch_lightning as pl 
 import multiprocessing
 
-sys.path.append('../utils')
+import albumentations as A
+
+sys.path.append('../utils/')
 from data import patch_index_generation, select_patch
+from augmentations import polarity_reversal, random_trace_dropout, random_high_noise_trace, random_amp_attenuation, random_trace_shuffle, horizontal_flip, random_amp_shift, rotate_patch
 
 from skimage.util import random_noise
 from skimage.filters import butterworth
 
-class StData12Dataset(Dataset) : 
-    def __init__(self, dataset, labels, patch_info, training_config) :
+class Stdata12Dataset(Dataset) : 
+    def __init__(self, dataset, labels, patch_info, training_config , mode = 'train') :
         super().__init__()
         self.patch_size = training_config['patch_size']
         self.stride = training_config['stride']
@@ -28,13 +31,40 @@ class StData12Dataset(Dataset) :
         self.noise_factor  = training_config['noise_factor']
 
         self.global_seed = training_config['seed']
+        
+        self.mode = mode # could be train, val, test 
+        
+        self.augmentations = training_config['augmentations']
+        
+        print('Augmentations', self.augmentations)
+
+        # Data Augmentation transforms. NOTE : A.Compose is not working with multiple A.Lambda, hence they are split into multiple transform sets
+        
+        self.tset_1 = A.Lambda(name='polarity_reversal', image=polarity_reversal, p = 0.2 )
+        self.tset_2 =  A.OneOf([
+                            A.Lambda(name='horizontal_flip', image = horizontal_flip, p = 0.2 ),
+                        A.Lambda(name='rotate_patch', image = rotate_patch, p = 0.2 ),
+                        ])
+        self.tset_3 =  A.OneOf([
+                            A.Lambda(name='random_trace_dropout', image = random_trace_dropout, p = 0.2 ),
+                            A.Lambda(name='random_high_noise_trace', image = random_high_noise_trace, p = 0.2 ),
+                            A.Lambda(name='random_trace_shuffle', image = random_trace_shuffle, p = 0.2 ),
+                        ])
+
+        self.tset_4 = A.OneOf([
+                            A.Lambda(name='random_amp_attenuation', image = random_amp_attenuation , p = 0.2 ), 
+                            A.Lambda(name='random_amp_shift', image = random_amp_shift , p = 0.2 ), 
+                        ])
+
+
+        
 
     def __len__(self) : 
         return self.patch_info.shape[0]
 
     def __getitem__(self, index) :
         shape = [self.patch_size] * 3 if self.data_mode == '3d' else [self.patch_size] * 2 
-        data , noisy_data, label = np.zeros(shape, dtype=np.float64) , np.zeros(shape, dtype=np.float64),  np.zeros(shape, dtype=np.float64)
+        data , noisy_data, label = np.zeros(shape, dtype=np.float32) , np.zeros(shape, dtype=np.float32),  np.zeros(shape, dtype=np.float32)
         
         data_ = select_patch(self.dataset, self.patch_info, index, self.patch_size, self.data_mode)
         label_ = select_patch(self.labels, self.patch_info, index, self.patch_size, self.data_mode)
@@ -64,6 +94,18 @@ class StData12Dataset(Dataset) :
         
         data_shape = data_.shape
         
+        
+        # add augmentations for training and val
+        if self.augmentations : 
+            if (self.mode == 'train') or (self.mode == 'val') : 
+                data_stack = np.stack([data_, noisy_data_], axis=0)
+                aug_1 = self.tset_1(image=data_stack )['image'] 
+                aug_2 = self.tset_2(image = np.stack(aug_1, axis=0))['image']
+                aug_3 = self.tset_3(image = np.stack(aug_2, axis=0))['image']
+                aug_4 = self.tset_4(image = np.stack(aug_3, axis=0))['image']
+
+                data_, noisy_data_ = aug_4
+        
         # ensure shape consistency even in edge patches
         
         if self.data_mode == '3d' : 
@@ -77,7 +119,7 @@ class StData12Dataset(Dataset) :
         
         return np.expand_dims(data, axis=0) , np.expand_dims(noisy_data, axis=0), np.expand_dims(label, axis=0) 
        
-class FaciesMarkDataModule(pl.LightningDataModule) : 
+class Stdata12DataModule(pl.LightningDataModule) : 
     def __init__(self, training_config) : 
         super().__init__() 
         self.training_config = training_config
@@ -89,19 +131,19 @@ class FaciesMarkDataModule(pl.LightningDataModule) :
         self.noise_mode = training_config['noise_mode']
         self.noise_factor = training_config['noise_factor']
         
-        self.train_data_path = os.path.join(training_config['dir']['workspace'], training_config['dir']['data_root'],training_config['dir']['train_data_path'])
-        self.val_data_path = os.path.join(training_config['dir']['workspace'], training_config['dir']['data_root'],training_config['dir']['val_data_path'])
-        self.test_data_path = os.path.join(training_config['dir']['workspace'], training_config['dir']['data_root'],training_config['dir']['test_data_path'])
-        self.train_labels_path = os.path.join(training_config['dir']['workspace'], training_config['dir']['data_root'],training_config['dir']['train_labels_path'])
-        self.val_labels_path  = os.path.join(training_config['dir']['workspace'], training_config['dir']['data_root'],training_config['dir']['val_labels_path'])
-        self.test_labels_path = os.path.join(training_config['dir']['workspace'], training_config['dir']['data_root'],training_config['dir']['test_labels_path'])
+        self.train_data_path = os.path.join(training_config['dir']['data_root'],training_config['dir']['train_data_path'])
+        self.val_data_path = os.path.join(training_config['dir']['data_root'],training_config['dir']['val_data_path'])
+        self.test_data_path = os.path.join(training_config['dir']['data_root'],training_config['dir']['test_data_path'])
+        self.train_labels_path = os.path.join(training_config['dir']['data_root'],training_config['dir']['train_labels_path'])
+        self.val_labels_path  = os.path.join(training_config['dir']['data_root'],training_config['dir']['val_labels_path'])
+        self.test_labels_path = os.path.join(training_config['dir']['data_root'],training_config['dir']['test_labels_path'])
         
-        self.train_patch_index_path = os.path.join(training_config['dir']['workspace'], training_config['dir']['data_root'], f"train_patches_{self.patch_size}_{self.stride}_{self.data_mode}.csv")
-        self.val_patch_index_path = os.path.join(training_config['dir']['workspace'], training_config['dir']['data_root'],f"test1_patches_{self.patch_size}_{self.stride}_{self.data_mode}.csv")
-        self.test_patch_index_path = os.path.join(training_config['dir']['workspace'], training_config['dir']['data_root'],f"test2_patches_{self.patch_size}_{self.stride}_{self.data_mode}.csv")
+        self.train_patch_index_path = os.path.join(training_config['dir']['data_root'], f"train_patches_{self.patch_size}_{self.stride}_{self.data_mode}.csv")
+        self.val_patch_index_path = os.path.join(training_config['dir']['data_root'],f"test1_patches_{self.patch_size}_{self.stride}_{self.data_mode}.csv")
+        self.test_patch_index_path = os.path.join(training_config['dir']['data_root'],f"test2_patches_{self.patch_size}_{self.stride}_{self.data_mode}.csv")
         
         
-        self.cpu_count = multiprocessing.cpu_count()//2 
+        self.cpu_count = multiprocessing.cpu_count()//2
         
     def prepare_data(self) : 
         patch_index_generation(self.train_data_path, self.stride, self.train_patch_index_path, self.data_mode)
@@ -110,19 +152,18 @@ class FaciesMarkDataModule(pl.LightningDataModule) :
     
     def setup(self, stage) :
         if stage == 'fit' or None : 
-
-            self.train_dataset = StData12Dataset(dataset=np.load(self.train_data_path), labels = np.load(self.train_labels_path) ,
+            self.train_dataset = Stdata12Dataset(dataset=np.load(self.train_data_path), labels = np.load(self.train_labels_path) ,
                                                    patch_info= pd.read_csv(self.train_patch_index_path) ,  
-                                                   training_config= self.training_config)
+                                                   training_config= self.training_config, mode='train')
             
-            self.val_dataset = StData12Dataset(dataset=np.load(self.val_data_path), labels = np.load(self.val_labels_path) ,
+            self.val_dataset = Stdata12Dataset(dataset=np.load(self.val_data_path), labels = np.load(self.val_labels_path) ,
                                                    patch_info= pd.read_csv(self.val_patch_index_path) ,  
-                                                   training_config= self.training_config)
+                                                   training_config= self.training_config, mode='val')
             
         if stage == 'test' : 
-            self.test_dataset = StData12Dataset(dataset=np.load(self.test_data_path), labels = np.load(self.test_labels_path) ,
+            self.test_dataset = Stdata12Dataset(dataset=np.load(self.test_data_path), labels = np.load(self.test_labels_path) ,
                                                    patch_info= pd.read_csv(self.test_patch_index_path) ,  
-                                                   training_config= self.training_config)
+                                                   training_config= self.training_config, mode='test')
     
     def train_dataloader(self) : 
         return DataLoader(self.train_dataset, shuffle=True,batch_size= self.batch_size, num_workers= self.cpu_count)
