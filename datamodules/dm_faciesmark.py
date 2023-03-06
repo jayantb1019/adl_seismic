@@ -87,7 +87,7 @@ class FaciesMarkDataset(Dataset) :
             
         if self.noise_mode == 'mixed' : # approximate poisson as gaussian
             noisy_data_ = random_noise(data_, 'poisson', seed = self.global_seed , clip=True) + \
-                         random_noise(data_, 'gaussian', seed = self.global_seed , clip=True , mean= 0, var = 0.5 )
+                         random_noise(data_, 'gaussian', seed = self.global_seed , clip=True , mean= 0, var = 0.1 )
             
         if self.noise_mode == 'lpf' : 
             noisy_data_ = butterworth(data_, cutoff_frequency_ratio=0.15, high_pass=False, order=5.0, channel_axis=None)

@@ -73,7 +73,7 @@ def random_high_noise_trace(patch, **kwargs) : # adds random noise to a few trac
 
 def random_amp_attenuation(patch, **kwargs) : # adds random noise to a few traces
     clean, noisy = patch
-    pct_atten = 0.1 # 10 % of points
+    pct_atten = 0.5 # 50 % of points
     amp_scaler = 0.5 # (0, 0.9)
     
     random_inlines = np.random.randint(0,clean.shape[1]-1, int(pct_atten * clean.shape[1]))
@@ -95,7 +95,7 @@ def random_amp_attenuation(patch, **kwargs) : # adds random noise to a few trace
 def random_trace_shuffle(patch, **kwargs) : # adds random noise to a few traces
     
     clean, noisy = patch
-    pct_atten = 0.05 # 10 % of tracces
+    pct_atten = 0.05 # 5 % of tracces
     neighborhood = 4
     
     # shuffle_mask = np.zeros_like(clean)
