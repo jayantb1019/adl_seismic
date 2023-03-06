@@ -171,7 +171,7 @@ class Efficient_U(pl.LightningModule) : # denoiser
 
     def predict_step(self, batch, batch_idx, *args, **kwargs) : 
 
-        clean, noisy, _ = batch 
+        noisy = batch 
         clean = clean.to(torch.float32).to(self.device)
         noisy = noisy.to(torch.float32).to(self.device)
 

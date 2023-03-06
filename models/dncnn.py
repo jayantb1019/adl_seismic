@@ -33,6 +33,8 @@ class DnCNNLightning(pl.LightningModule) :
 
         self.noise_mode = training_config['data']['noise_mode']
         self.noise_factor = training_config['data']['noise_factor']
+
+        print('bias', training_config['dncnn']['bias'])
         
         self.model = DnCNN(in_nc = 1, out_nc=1, nc=self.w, nb=self.nlayers, act_mode =self.act, bias=self.bias) # IL = instance normalisation and leaky relu
         
@@ -85,8 +87,7 @@ class DnCNNLightning(pl.LightningModule) :
         clean, noisy, _ = batch 
         
         
-        loss = self.loss_function(noisy - noise, clean)
-        self.log('test_loss', loss)
+        
         
         noisy_refpad = self.reflection_pad(noisy) # perform inference on a padded patch 
         noise = self(noisy_refpad)
@@ -95,6 +96,9 @@ class DnCNNLightning(pl.LightningModule) :
         
         psnr = peak_signal_noise_ratio((noisy - noise).detach(), clean.detach())
         ssim = structural_similarity_index_measure((noisy-noise).detach(), clean.detach())
+
+        loss = self.loss_function(noisy - noise, clean)
+        self.log('test_loss', loss)
         
         self.log('test_psnr', psnr)
         self.log('test_ssim', ssim)
