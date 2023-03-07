@@ -339,7 +339,7 @@ if __name__ == '__main__' :
     parser.add_argument('-nt', type=str, default='gaussian') # noise type, could be gaussian, poisson, mixed, lpf
     parser.add_argument('-nl', type=float, default = 0.5) # noise level, between 0-1. Prefer 0.1,0.5,0.9 # only works for gaussian
     parser.add_argument("-denoiser", type=bool, default=True)
-    parser.add_argument('-discrminator', type = bool, default = True)
+    parser.add_argument('-discriminator', type = bool, default = True)
     parser.add_argument('-adl', type=bool, default=True)
     parser.add_argument('-tests', type=bool, default=True)
     parser.add_argument('-aug', type = bool, default = False)
