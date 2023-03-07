@@ -15,7 +15,7 @@ import torch.nn as nn
 from rich import traceback
 
 torch.cuda.empty_cache()
-# torch.set_float32_matmul_precision('medium') # doesnt work on MX600
+torch.set_float32_matmul_precision('medium') 
 
 import pytorch_lightning as pl 
 from pytorch_lightning.callbacks.progress import TQDMProgressBar
@@ -90,8 +90,10 @@ def main(args) :
     if args['nl'] : 
         config['train']['data']['noise_factor'] = args['nl']
         
-    if args['aug'] : 
-        config['train']['data']['augmentations'] = args['aug']
+    if args['aug'] == True: 
+        config['train']['data']['augmentations'] = True 
+    else : 
+        config['train']['data']['augmentations'] = False
         
     
     train_denoiser = False
