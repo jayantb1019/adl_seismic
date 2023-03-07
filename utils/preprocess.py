@@ -47,7 +47,7 @@ def gain(data,dt,option1,parameters,option2):
             shaped_e = e.reshape(len(e),1)
             
             rms = np.sqrt(conv2(shaped_e,shaped_h,"same"))
-            epsi = 1e-10*max(rms)
+            epsi = 1e-6*max(rms)
             op = rms/(rms**2+epsi)
             op = op.reshape(len(op),)
 
