@@ -5,19 +5,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 #create your figure and get the figure object returned
-st.title('Dataset Quality Explorer')
+st.title('Clean Dataset Quality Checker')
 
 fig = plt.figure() 
 plt.plot([1, 2, 3, 4, 5]) 
 
-INTERPRETATION_DATA_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/data/f3_interpretation/inline_vol.npy'
-INTERPRETATION_LABEL_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/data/f3_interpretation/inline_label.npy'
+INTERPRETATION_DATA_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/data/clean/f3_interpretation/inline_vol.npy'
+INTERPRETATION_LABEL_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/data/clean/f3_interpretation/inline_label.npy'
 
-FACIESMARK_DATA_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/data/faciesmark/raw/seismic_entire_volume.npy'
-FACIESMARK_LABEL_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/data/faciesmark/raw/labels_entire_volume.npy'
+FACIESMARK_DATA_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/data/clean/faciesmark/raw/seismic_entire_volume.npy'
+FACIESMARK_LABEL_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/data/clean/faciesmark/raw/labels_entire_volume.npy'
 
-STDATA12_DATA_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/data/stdata12/stdata_12_amplitude.npy'
-STDATA12_LABEL_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/data/stdata12/stdata_12_labels.npy'
+STDATA12_DATA_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/data/clean/stdata12/stdata_12_amplitude.npy'
+STDATA12_LABEL_PATH = '/Users/jayanthboddu/Desktop/data_science/upgrad/MSDS/experiments_feb/data/clean/stdata12/stdata_12_labels.npy'
 
 
 dataset = st.sidebar.selectbox('Select Dataset' , options = ['interpretation', 'faciesmark', 'stdata12'])
