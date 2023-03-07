@@ -4,7 +4,7 @@ train :
   data : 
     seed : 42
     patch_size : 128
-    stride  : 128
+    stride  : 64
     batch_size : 16
     data_mode : 2d # could be 3d 
 
