@@ -59,7 +59,7 @@ def main(args) :
     if args['loc'] == 'colab' : 
         CONFIG_PATH = '/content/adl_seismic/config/config_adl_faciesmark_colab.yaml'
     elif args['loc'] == 'workstation' : 
-        CONFIG_PATH = '/local1/workspace/adl_seismic/config/config_adl_faciesmark.yaml'
+        CONFIG_PATH = '/local1/workspace/adl_seismic/config/config_adl_faciesmark_workstation_final.yaml'
     
     elif args['loc'] == 'kaggle' : 
         CONFIG_PATH = '/kaggle/working/adl_seismic/config/config_adl_faciesmark_kaggle.yaml'
@@ -126,13 +126,13 @@ def main(args) :
     # pdb.set_trace()
 
     #PHASE 1 : 
-    # print('''
-    #       ================
-    #       DENOISER WARM UP
-    #       ================
-    #       ''')
+    print('''
+          ================
+          DENOISER WARM UP
+          ================
+          ''')
     
-    # denoiser = Efficient_U(config)
+    denoiser = Efficient_U(config)
     
     # if args['loc'] == 'kaggle' : 
     #     denoiser_checkpoint_path = '/kaggle/working/adl_seismic/checkpoints/denoiser.ckpt' # colab
@@ -162,7 +162,7 @@ def main(args) :
     )
     
     
-    # denoiser_trainer.fit(denoiser, datamodule)
+    denoiser_trainer.fit(denoiser, datamodule)
     # denoiser_trainer.test(denoiser, datamodule)
     # denoiser_trainer.test(trained_denoiser, datamodule)
 
