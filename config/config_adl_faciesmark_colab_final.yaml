@@ -22,7 +22,7 @@ train :
     noise_factor : 0.9       # [0,1]
 
     dir : 
-      data_root : /content/adl_seismic/data/preprocessed/faciesmark
+      data_root : /content/adl_seismic/data/faciesmark_preprocessed
       train_data_path : train_inline_vol.npy
       val_data_path : val_inline_vol.npy
       test_data_path : test_inline_vol.npy
