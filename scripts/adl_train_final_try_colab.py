@@ -190,13 +190,15 @@ def main(args) :
         gradient_clip_val=0.5
     )
         
+    discriminator_model = Efficient_U_DISC(model=denoiser,config=config)
     
-    
-
+    discriminator_trainer.fit(discriminator_model, datamodule)
             
-    trained_discriminator = Efficient_U_DISC.load_from_checkpoint(checkpoint_path = '/content/drive/MyDrive/adl_seismic/adl_final_run/discrminator_24_02_2023_final_run_epoch=49-step=250.ckpt', 
+    disc_checkpoint = get_checkpoint('discriminator', experiment_version, config)
+    trained_discriminator = Efficient_U_DISC.load_from_checkpoint(checkpoint_path = disc_checkpoint, 
                                                                       model=denoiser, 
                                                                       config=config)
+
 
     print('''
         =====================
