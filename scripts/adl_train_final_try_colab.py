@@ -195,7 +195,7 @@ def main(args) :
 
             
     trained_discriminator = Efficient_U_DISC.load_from_checkpoint(checkpoint_path = '/content/drive/MyDrive/adl_seismic/adl_final_run/discrminator_24_02_2023_final_run_epoch=49-step=250.ckpt', 
-                                                                      denoiser=denoiser, 
+                                                                      model=denoiser, 
                                                                       config=config)
 
     print('''
