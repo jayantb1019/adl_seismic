@@ -83,10 +83,10 @@ class FaciesMarkDataset(Dataset) :
         if self.noise_mode == 'gaussian' : 
             noisy_data_ = random_noise(data_, 'gaussian', seed = self.global_seed , clip=True, mean = 0 , var = self.noise_factor)
         if self.noise_mode == 'poisson' : 
-            noisy_data_ = random_noise(data_, 'gaussian', seed = self.global_seed , clip=True, mean = 0.05, var = 0.05)
+            noisy_data_ = random_noise(data_, 'gaussian', seed = self.global_seed , clip=True, mean = 0.05, var = 0.05**2)
             
         if self.noise_mode == 'mixed' : # approximate poisson as gaussian
-            noisy_data_ = np.clip(random_noise(data_, 'gaussian', seed = self.global_seed , clip=True, mean = 0.05, var = 0.05) + \
+            noisy_data_ = np.clip(random_noise(data_, 'gaussian', seed = self.global_seed , clip=True, mean = 0.05, var = 0.05**2) + \
                          random_noise(data_, 'gaussian', seed = self.global_seed , clip=True , mean= 0, var = 0.05 ),-1,1)
             
         if self.noise_mode == 'lpf' : 
