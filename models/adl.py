@@ -164,9 +164,11 @@ class Efficient_U(pl.LightningModule) : # denoiser
 
         test_psnr = peak_signal_noise_ratio(denoised.detach(), clean.detach())
         test_ssim = structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, kernel_size = 5, )
+        mae = Loss_L1(clean.detach(), denoised.detach())
 
         self.log('test_psnr', test_psnr)
         self.log('test_ssim', test_ssim)
+        self.log('mae', mae)
 
 
     def predict_step(self, batch, batch_idx, *args, **kwargs) : 

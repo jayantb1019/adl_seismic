@@ -165,6 +165,7 @@ class DIP(pl.LightningModule) :
 
         psnr = peak_signal_noise_ratio(masked_predicted_c, x_c)
         ssim = structural_similarity_index_measure(masked_predicted_c, x_c)
+        
 
         self.log('val_psnr', psnr)
         self.log('val_ssim', ssim)

@@ -90,10 +90,10 @@ def main(args) :
     if args['nl'] : 
         config['train']['data']['noise_factor'] = args['nl']
         
-    if args['aug'] == True: 
-        config['train']['data']['augmentations'] = True 
-    else : 
-        config['train']['data']['augmentations'] = False
+    # if args['aug'] == True: 
+    #     config['train']['data']['augmentations'] = True 
+    # else : 
+    #     config['train']['data']['augmentations'] = False
         
     
     train_denoiser = False
