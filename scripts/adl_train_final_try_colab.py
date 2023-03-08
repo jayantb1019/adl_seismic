@@ -190,11 +190,11 @@ def main(args) :
         gradient_clip_val=0.5
     )
         
-    discriminator_model = Efficient_U_DISC(model=denoiser,config=config)
+    # discriminator_model = Efficient_U_DISC(model=denoiser,config=config)
     
-    discriminator_trainer.fit(discriminator_model, datamodule)
+    # discriminator_trainer.fit(discriminator_model, datamodule)
             
-    disc_checkpoint = get_checkpoint('discriminator', experiment_version, config)
+    disc_checkpoint = '/content/drive/MyDrive/adl_seismic/adl_final_run/discriminator_08_03_2023_final_run_49-step=15550.ckpt'
     trained_discriminator = Efficient_U_DISC.load_from_checkpoint(checkpoint_path = disc_checkpoint, 
                                                                       model=denoiser, 
                                                                       config=config)
@@ -222,7 +222,6 @@ def main(args) :
         detect_anomaly = True, # detects nans in forward / backward pass and stops training
         gradient_clip_val=0.5,
         # check_val_every_n_epoch = 5
-        precision=16 
     )
 
 
