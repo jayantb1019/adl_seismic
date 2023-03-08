@@ -5,7 +5,7 @@ train :
     seed : 42
     patch_size : 128
     stride  : 64
-    batch_size : 16
+    batch_size : 128
     data_mode : 2d # could be 3d 
 
     augmentations : True
@@ -17,9 +17,9 @@ train :
     train_valid_ratio : 0.95 
     
   
-    noise_mode : 'poisson'  # could be poisson , mixed, lpf 
+    noise_mode : 'mixed'  # could be poisson , mixed, lpf 
     cutoff_frequency_ratio : 0.15 # butterworth filter
-    noise_factor : 0.9       # [0,1]
+    noise_factor : 0.05       # [0,1]
 
     dir : 
       data_root : /content/adl_seismic/data/faciesmark
@@ -59,7 +59,7 @@ train :
 
   discriminator:
     model : Efficient_Unet_disc
-    epochs : 50
+    epochs : 25
     lr: 0.0001
     optimizer: Adam
     negative_slope: 0.1
