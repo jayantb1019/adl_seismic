@@ -94,14 +94,31 @@ class DnCNNLightning(pl.LightningModule) :
         noise = torch.clamp(noise, -1,1)
         noise = noise[:,:, self.patch_size //2 : self.patch_size //2 + self.patch_size , self.patch_size //2 : self.patch_size //2 + self.patch_size ] # recover original patch
         
+
+        noisy_psnr = peak_signal_noise_ratio(noisy.detach(), clean.detach())
+        noisy_ssim = structural_similarity_index_measure(noisy.detach(), clean.detach(), sigma=0.5, kernel_size = 5, )
+
+
+        test_psnr = peak_signal_noise_ratio((noisy - noise).detach(), clean.detach()) # let's not give data range
+        test_ssim = structural_similarity_index_measure((noisy - noise).detach(), clean.detach(), sigma=0.5, kernel_size = 5, )
+
         psnr = peak_signal_noise_ratio((noisy - noise).detach(), clean.detach())
         ssim = structural_similarity_index_measure((noisy-noise).detach(), clean.detach())
 
         loss = self.loss_function(noisy - noise, clean)
+
+        loss_noisy = self.loss_function(noisy, clean)
+
         self.log('test_loss', loss)
+        self.log('test_mae', loss)
         
         self.log('test_psnr', psnr)
         self.log('test_ssim', ssim)
+
+        self.log('noisy_mae', loss_noisy)
+        
+        self.log('noisy_psnr', noisy_psnr)
+        self.log('noisy_ssim', noisy_ssim)
         
         # return loss
     

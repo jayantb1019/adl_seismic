@@ -8,8 +8,6 @@ from datetime import datetime
 import gc
 import pdb 
 
-torch.cuda.empty_cache()
-
 from rich import traceback
 
 import pytorch_lightning as pl 
@@ -20,8 +18,11 @@ import sys
 sys.path.append('../models')
 sys.path.append('../datamodules')
 
-from adl import Efficient_U, Efficient_U_DISC, ADL
+from dncnn import DnCNNLightning
 from dm_faciesmark import FaciesMarkDataModule
+
+# model config
+CONFIG_MODEL = '../config/config_dncnn.yaml'
 
 # dataset folders 
 CONFIG_PATH_INTERPRETATION = '../config/final_config_interpretation.yaml'
@@ -29,16 +30,16 @@ CONFIG_PATH_FACIESMARK = '../config/final_config_faciesmark.yaml'
 CONFIG_PATH_STDATA12 = '../config/final_config_stdata12.yaml'
 
 # checkpoint paths 
-CKPT_PATH_G_01 = '/local1/workspace/adl_seismic/checkpoints/denoiser/adl_final_07_03_2023_16_28_38_gaussian_0.01/checkpoints/epoch=49-step=31100.ckpt'
-CKPT_PATH_G_05 = '/local1/workspace/adl_seismic/checkpoints/denoiser/adl_final_07_03_2023_20_16_53_gaussian_0.05/checkpoints/epoch=49-step=15550.ckpt'
-CKPT_PATH_G_1 = '/local1/workspace/adl_seismic/checkpoints/denoiser/adl_final_08_03_2023_03_06_17_gaussian_0.1/checkpoints/epoch=49-step=15550.ckpt'
-CKPT_PATH_G_5 = '/local1/workspace/adl_seismic/checkpoints/denoiser/adl_final_08_03_2023_03_13_19_gaussian_0.5/checkpoints/epoch=48-step=15239.ckpt'
-CKPT_PATH_P = '/local1/workspace/adl_seismic/checkpoints/denoiser/adl_final_08_03_2023_10_37_42_poisson/checkpoints/epoch=49-step=15550.ckpt'
-CKPT_PATH_MIXED = '/local1/workspace/adl_seismic/checkpoints/denoiser/adl_final_08_03_2023_07_59_41_mixed/checkpoints/epoch=49-step=15550.ckpt'
-CKPT_PATH_LPF = '/local1/workspace/adl_seismic/checkpoints/denoiser/adl_final_08_03_2023_06_34_49_lpf/checkpoints/epoch=49-step=15550.ckpt'
+CKPT_PATH_G_01 = '/local1/workspace/adl_seismic/checkpoints/dncnn/dncnn_08_03_2023_gaussian_0.01/checkpoints/epoch=19-step=16600.ckpt'
+CKPT_PATH_G_05 = '/local1/workspace/adl_seismic/checkpoints/dncnn/dncnn_08_03_2023_gaussian_0.05/checkpoints/epoch=17-step=14940.ckpt'
+CKPT_PATH_G_1 = '/local1/workspace/adl_seismic/checkpoints/dncnn/dncnn_02_03_2023_gaussian_0.1/checkpoints/epoch=49-step=24800.ckpt'
+CKPT_PATH_G_5 = '/local1/workspace/adl_seismic/checkpoints/dncnn/dncnn_02_03_2023_gaussian_0.5/checkpoints/epoch=49-step=24800.ckpt'
+CKPT_PATH_P = '/local1/workspace/adl_seismic/checkpoints/dncnn/dncnn_08_03_2023_poisson/checkpoints/epoch=17-step=14940.ckpt'
+CKPT_PATH_MIXED = '/local1/workspace/adl_seismic/checkpoints/dncnn/dncnn_08_03_2023_mixed/checkpoints/epoch=17-step=14940.ckpt'
+CKPT_PATH_LPF = '/local1/workspace/adl_seismic/checkpoints/dncnn/dncnn_08_03_2023_lpf/checkpoints/epoch=17-step=14940.ckpt'
 
 # results file path 
-RESULTS_FILE_PATH = '/local1/workspace/adl_seismic/results/adl_results.csv'
+RESULTS_FILE_PATH = '/local1/workspace/adl_seismic/results/dncnn_results.csv'
 
 def get_config(config_path) : 
     # read config file 
@@ -50,7 +51,7 @@ def get_config(config_path) :
 def main() : 
     pl.seed_everything(42)
 
-
+    torch.cuda.empty_cache()
 
     timestamp = datetime.now().strftime("%d_%m_%Y_%H_%M_%S")
 
@@ -117,29 +118,34 @@ def main() :
         CKPT_PATH = CKPT_PATH_LPF
 
     
-    config = get_config(CONFIG_PATH)
-    
+    ds_config = get_config(CONFIG_PATH)
+    model_config = get_config(CONFIG_MODEL)
+
     if tnt : 
-        config['train']['data']['noise_mode'] = tnt
+        ds_config['train']['data']['noise_mode'] = tnt
     
     if tnl : 
-        config['train']['data']['noise_factor'] = tnl
+        ds_config['train']['data']['noise_factor'] = tnl
+
+    if (CKPT_PATH == CKPT_PATH_G_1) or (CKPT_PATH == CKPT_PATH_G_5) : 
+        model_config['train']['dncnn']['bias'] = True
+    
         
 
-    denoiser_logger = TensorBoardLogger('../lightning_logs', name='denoiser', log_graph=True, version = timestamp)
+    denoiser_logger = TensorBoardLogger('../lightning_logs', name='dncnn_tests', log_graph=True, version = timestamp)
     modelSummaryCb = RichModelSummary(max_depth=-1)
 
     denoiser_trainer = pl.Trainer(
         accelerator = 'cuda', callbacks = [modelSummaryCb], logger=denoiser_logger)
     
     
-    trained_denoiser = Efficient_U.load_from_checkpoint(checkpoint_path = CKPT_PATH, config = config)
-    trained_denoiser = trained_denoiser.eval()
+    trained_dncnn = DnCNNLightning.load_from_checkpoint(checkpoint_path = CKPT_PATH, training_config = model_config, strict=False)
+    trained_dncnn = trained_dncnn.eval()
 
-    datamodule = FaciesMarkDataModule(config['train']['data'])
+    datamodule = FaciesMarkDataModule(ds_config['train']['data'])
     
     gc.collect()
-    results = denoiser_trainer.test(trained_denoiser, datamodule)[0]
+    results = denoiser_trainer.test(trained_dncnn, datamodule)[0]
     gc.collect()
 
     # pdb.set_trace()

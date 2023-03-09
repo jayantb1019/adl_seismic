@@ -51,7 +51,7 @@ class Noise2Self(pl.LightningModule) :
 
         self.save_hyperparameters()
 
-        self.example_input_array = torch.zeros(1,1, self.patch_size, self.patch_size ).double()
+        self.example_input_array = torch.zeros(1,1, self.patch_size, self.patch_size).double()
 
 
     def forward(self, x) : 

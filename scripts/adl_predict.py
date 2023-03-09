@@ -38,6 +38,19 @@ from augmentations import polarity_reversal, random_trace_dropout, random_high_n
 from skimage.util import random_noise
 from skimage.filters import butterworth
 
+# model config
+DENOISER_CONFIG_PATH = '/local1/workspace/adl_seismic/config/final_config_faciesmark.yaml'
+
+# checkpoint paths 
+CKPT_PATH_G_01 = '/local1/workspace/adl_seismic/checkpoints/denoiser/adl_final_07_03_2023_16_28_38_gaussian_0.01/checkpoints/epoch=49-step=31100.ckpt'
+CKPT_PATH_G_05 = '/local1/workspace/adl_seismic/checkpoints/denoiser/adl_final_07_03_2023_20_16_53_gaussian_0.05/checkpoints/epoch=49-step=15550.ckpt'
+CKPT_PATH_G_1 = '/local1/workspace/adl_seismic/checkpoints/denoiser/adl_final_08_03_2023_03_06_17_gaussian_0.1/checkpoints/epoch=49-step=15550.ckpt'
+CKPT_PATH_G_5 = '/local1/workspace/adl_seismic/checkpoints/denoiser/adl_final_08_03_2023_03_13_19_gaussian_0.5/checkpoints/epoch=48-step=15239.ckpt'
+CKPT_PATH_P = '/local1/workspace/adl_seismic/checkpoints/denoiser/adl_final_08_03_2023_10_37_42_poisson/checkpoints/epoch=49-step=15550.ckpt'
+CKPT_PATH_MIXED = '/local1/workspace/adl_seismic/checkpoints/denoiser/adl_final_08_03_2023_07_59_41_mixed/checkpoints/epoch=49-step=15550.ckpt'
+CKPT_PATH_LPF = '/local1/workspace/adl_seismic/checkpoints/denoiser/adl_final_08_03_2023_06_34_49_lpf/checkpoints/epoch=49-step=15550.ckpt'
+
+
 # config getter
 def get_config(config_path) : 
     # read config file 
@@ -49,11 +62,6 @@ def get_config(config_path) :
 def load_model(config) : 
     # config
     accelerator = config['predict']['accelerator']
-
-    # paths
-    denoiser_ckpt_path = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_27_02_2023_18_16_16/checkpoints/epoch=59-step=27360.ckpt'
-    discriminator_ckpt_path = '/local1/workspace/adl_seismic/lightning_logs/discriminator/adl_28_02_2023_12_34_11/checkpoints/epoch=10-step=5016.ckpt'
-    adl_ckpt_path = '/local1/workspace/adl_seismic/lightning_logs/adl/adl_28_02_2023_14_23_58/checkpoints/epoch=82-step=830.ckpt'
 
     with torch.no_grad() : 
         trained_denoiser = Efficient_U(config).load_from_checkpoint(denoiser_ckpt_path).eval()

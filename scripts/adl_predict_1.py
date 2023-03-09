@@ -8,6 +8,8 @@ from datetime import datetime
 import gc
 import pdb 
 
+import numpy as np
+
 torch.cuda.empty_cache()
 
 from rich import traceback
@@ -135,22 +137,18 @@ def main() :
     
     trained_denoiser = Efficient_U.load_from_checkpoint(checkpoint_path = CKPT_PATH, config = config)
     trained_denoiser = trained_denoiser.eval()
-
-    datamodule = FaciesMarkDataModule(config['train']['data'])
     
     gc.collect()
-    results = denoiser_trainer.test(trained_denoiser, datamodule)[0]
+    noisy_iline = '/local1/workspace/random_denoising/data/noisy_inline_samples/noisy_iline_mp41b_pstm_rnd_gaussian_0.1.npy'
+    iline_np = np.load(noisy_iline)
+
+    iline_tensor = torch.from_numpy(iline_np)
+
+    results = denoiser_trainer.predict(trained_denoiser, iline_tensor)[0]
+
+    pdb.set_trace()
     gc.collect()
 
-    # pdb.set_trace()
-
-    # write to text file 
-
-    with open(RESULTS_FILE_PATH, 'a') as f : 
-        f.writelines(f"{timestamp},{dataset},{cnt},{cnl},{tnt},{tnl},{results['noisy_mae']},{results['noisy_psnr']},{results['noisy_ssim']},{results['test_mae']},{results['test_psnr']},{results['test_ssim']}\n")
-    f.close()
-
-    
     
 if __name__ == '__main__' : 
     main()

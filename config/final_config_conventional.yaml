@@ -1,0 +1,10 @@
+train : 
+  accelerator : cuda
+  fast_dev_run : false
+
+  data : 
+    seed : 42
+    patch_size : 128
+    stride  : 128
+    batch_size : 16
+    data_mode : 2d # could be 3d 

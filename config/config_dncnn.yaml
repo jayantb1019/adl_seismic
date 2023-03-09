@@ -36,7 +36,7 @@ train :
   dncnn : 
     loss_function : 'l1' # could be l2
     bias : false
-    nlayers : 20 
+    nlayers : 15 
     w : 64
     act : IL
     lr : 0.0001

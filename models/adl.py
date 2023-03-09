@@ -152,31 +152,15 @@ class Efficient_U(pl.LightningModule) : # denoiser
         clean = clean.to(torch.float32).to(self.device)
         noisy = noisy.to(torch.float32).to(self.device)
 
-        noisy_refpad = self.reflection_pad(noisy) # perform inference on a padded patch 
+        # noisy_refpad = self.reflection_pad(noisy) # perform inference on a padded patch 
 
-        denoised, denoised_2, denoised_4 = self.model(noisy_refpad)
+        # denoised, denoised_2, denoised_4 = self.model(noisy_refpad)
         
-        denoised = torch.clamp(denoised, -1,1) # Just a precaution
+        # denoised = torch.clamp(denoised, -1,1) # Just a precaution
 
-        denoised = denoised[:,:, self.patch_size //2 : self.patch_size //2 + self.patch_size , self.patch_size //2 : self.patch_size //2 + self.patch_size ] # recover original patch
+        # denoised = denoised[:,:, self.patch_size //2 : self.patch_size //2 + self.patch_size , self.patch_size //2 : self.patch_size //2 + self.patch_size ] # recover original patch
 
-        
-
-        test_psnr = peak_signal_noise_ratio(denoised.detach(), clean.detach())
-        test_ssim = structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, kernel_size = 5, )
-        mae = Loss_L1(clean.detach(), denoised.detach())
-
-        self.log('test_psnr', test_psnr)
-        self.log('test_ssim', test_ssim)
-        self.log('mae', mae)
-
-
-    def predict_step(self, batch, batch_idx, *args, **kwargs) : 
-
-        noisy = batch 
-        clean = clean.to(torch.float32).to(self.device)
-        noisy = noisy.to(torch.float32).to(self.device)
-
+        # ------------------------------------------------------------
         denoised_final  = torch.zeros_like(noisy)
 
 
@@ -209,7 +193,84 @@ class Efficient_U(pl.LightningModule) : # denoiser
         noisy_pr_refpad = self.reflection_pad(noisy_pr)
         denoised_pr, _, _ = self.model(noisy_pr_refpad)
         denoised_pr = torch.clamp(denoised_pr, -1,1)
-        denoised_pr = denoised_hf[:,:, self.patch_size //2 : self.patch_size //2 + self.patch_size , self.patch_size //2 : self.patch_size //2 + self.patch_size ] # recover original patch
+        denoised_pr = denoised_pr[:,:, self.patch_size //2 : self.patch_size //2 + self.patch_size , self.patch_size //2 : self.patch_size //2 + self.patch_size ] # recover original patch
+        denoised_final += -1 * denoised_pr # reverse polarity again
+
+        denoised_pr = None 
+        noisy_pr_refpad = None 
+        denoised_pr = None
+        gc.collect()
+
+        denoised = denoised_final / 3
+        # -------------------------------------------------------------
+
+        
+
+        test_psnr = peak_signal_noise_ratio(denoised.detach(), clean.detach())
+        test_ssim = structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, kernel_size = 5, )
+        test_mae = Loss_L1(clean.detach(), denoised.detach())
+
+        noisy_psnr = peak_signal_noise_ratio(noisy.detach(), clean.detach()) # let's not give data range
+        noisy_ssim = structural_similarity_index_measure(noisy.detach(), clean.detach(), sigma=0.5, kernel_size = 5, )
+        noisy_mae = Loss_L1(clean.detach(), noisy.detach())
+
+        self.log('noisy_psnr', noisy_psnr)
+        self.log('noisy_ssim', noisy_ssim)
+        self.log('noisy_mae', noisy_mae)
+
+        self.log('test_psnr', test_psnr)
+        self.log('test_ssim', test_ssim)
+        self.log('test_mae', test_mae)
+
+
+    def predict_step(self, batch, batch_idx, *args, **kwargs) : 
+
+
+        noisy = batch 
+        # clean = clean.to(torch.float32).to(self.device)
+        # noisy = noisy.to(torch.float32).to(self.device)
+
+        denoised_final  = torch.zeros_like(noisy)
+
+        h = noisy.shape[0]
+        w = noisy.shape[1]
+
+        noisy = torch.unsqueeze(torch.unsqueeze(noisy, 0),0)
+
+        pdb.set_trace()
+
+        # denoise original
+
+        reflection_pad = nn.ReflectionPad2d((h//2, h//2,w//2,w//2))
+
+        noisy_refpad = reflection_pad(noisy) # perform inference on a padded patch 
+        denoised,_,_ = self.model(noisy_refpad)
+        denoised = torch.clamp(denoised, -1,1) # Just a precaution
+        denoised = denoised[:,:, h //2 : h //2 + h , w //2 : w //2 + w ] # recover original patch
+        denoised_final += denoised 
+        denoised = None 
+        noisy_refpad = None
+        gc.collect()
+
+        # denoise horizontal flipped version
+        noisy_hf = self.hflipper(noisy) # flip once
+        noisy_hf_refpad = self.reflection_pad(noisy_hf)
+        denoised_hf, _, _ = self.model(noisy_hf_refpad)
+        denoised_hf = torch.clamp(denoised_hf, -1,1)
+        denoised_hf = denoised_hf[:,:, h //2 : h //2 + h , w //2 : w //2 + w ] # recover original patch
+        denoised_final += self.hflipper(denoised_hf) # flip result again
+
+        denoised_hf = None 
+        noisy_hf_refpad = None 
+        denoised_hf = None
+        gc.collect()
+
+        # denoise polarity reversed version 
+        noisy_pr = -1 * noisy # reverse polarity
+        noisy_pr_refpad = self.reflection_pad(noisy_pr)
+        denoised_pr, _, _ = self.model(noisy_pr_refpad)
+        denoised_pr = torch.clamp(denoised_pr, -1,1)
+        denoised_pr = denoised_hf[:,:, h //2 : h //2 + h , w //2 : w //2 + w ] # recover original patch
         denoised_final += -1 * denoised_pr # reverse polarity again
 
         denoised_pr = None 
@@ -673,8 +734,14 @@ class ADL(pl.LightningModule) : # Full ADL model
 
         denoised = denoised[:,:,self.patch_size //2 : self.patch_size //2 + self.patch_size , self.patch_size //2 : self.patch_size //2 + self.patch_size ] # recover original patch
 
+        noisy_psnr = peak_signal_noise_ratio(noisy.detach(), clean.detach())
+        noisy_ssim = structural_similarity_index_measure(noisy.detach(), clean.detach(), sigma=0.5, kernel_size = 5, )
+
         test_psnr = peak_signal_noise_ratio(denoised.detach(), clean.detach()) # let's not give data range
         test_ssim = structural_similarity_index_measure(denoised.detach(), clean.detach(), sigma=0.5, kernel_size = 5, )
+
+        self.log('noisy_psnr', noisy_psnr)
+        self.log('noisy_ssim', noisy_ssim)
 
         self.log('test_psnr', test_psnr)
         self.log('test_ssim', test_ssim)
