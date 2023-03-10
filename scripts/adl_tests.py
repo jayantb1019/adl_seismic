@@ -36,6 +36,7 @@ CKPT_PATH_G_5 = '/local1/workspace/adl_seismic/checkpoints/denoiser/adl_final_08
 CKPT_PATH_P = '/local1/workspace/adl_seismic/checkpoints/denoiser/adl_final_08_03_2023_10_37_42_poisson/checkpoints/epoch=49-step=15550.ckpt'
 CKPT_PATH_MIXED = '/local1/workspace/adl_seismic/checkpoints/denoiser/adl_final_08_03_2023_07_59_41_mixed/checkpoints/epoch=49-step=15550.ckpt'
 CKPT_PATH_LPF = '/local1/workspace/adl_seismic/checkpoints/denoiser/adl_final_08_03_2023_06_34_49_lpf/checkpoints/epoch=49-step=15550.ckpt'
+CKPT_PATH_TRULY_RANDOM = '/local1/workspace/adl_seismic/lightning_logs/denoiser/adl_truly_random_09_03_2023_20_01_56/checkpoints/epoch=29-step=37740.ckpt'
 
 # results file path 
 RESULTS_FILE_PATH = '/local1/workspace/adl_seismic/results/adl_results.csv'
@@ -115,6 +116,9 @@ def main() :
         CKPT_PATH = CKPT_PATH_P
     if cnt == 'lpf' : 
         CKPT_PATH = CKPT_PATH_LPF
+
+    if cnt == 'truly_random' : 
+        CKPT_PATH = CKPT_PATH_TRULY_RANDOM
 
     
     config = get_config(CONFIG_PATH)

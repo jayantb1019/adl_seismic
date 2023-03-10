@@ -4,8 +4,8 @@ train :
   data : 
     seed : 42
     patch_size : 128
-    stride  : 128
-    batch_size : 4
+    stride  : 64
+    batch_size : 16
     data_mode : 2d # could be 3d 
 
     augmentations : true
@@ -22,14 +22,14 @@ train :
     noise_factor : 0.5       # [0,1]
 
     dir : 
-      data_root : /local1/workspace/adl_seismic/data/faciesmark
-      train_data_path : train/train_seismic.npy
-      val_data_path : test_once/test1_seismic.npy
-      test_data_path : test_once/test2_seismic.npy
-      train_labels_path : train/train_labels.npy
-      val_labels_path : test_once/test1_labels.npy
-      test_labels_path : test_once/test2_labels.npy
-      logs_folder : /local1/workspace/adl_seismic/lightning_logs
+      data_root : /local1/workspace/adl_seismic/data/preprocessed/faciesmark
+      train_data_path : train_inline_vol.npy
+      val_data_path : val_inline_vol.npy
+      test_data_path : test_inline_vol.npy
+      train_labels_path : train_inline_labels.npy
+      val_labels_path : val_inline_labels.npy
+      test_labels_path : test_inline_labels.npy
+      logs_folder : /local1/workspace/adl_seismic/lightning_logs/
   
   ADL : 
     epochs : 50

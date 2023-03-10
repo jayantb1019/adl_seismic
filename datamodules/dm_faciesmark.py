@@ -3,7 +3,7 @@ import pandas as pd
 import os
 import sys 
 
-
+import torch
 from torch.utils.data import Dataset, DataLoader
 import pytorch_lightning as pl 
 import multiprocessing
@@ -29,6 +29,9 @@ class FaciesMarkDataset(Dataset) :
         
         self.noise_mode = training_config['noise_mode']
         self.noise_factor  = training_config['noise_factor']
+
+
+        self.truly_random = self.noise_mode
 
         self.global_seed = training_config['seed']
         
@@ -79,6 +82,26 @@ class FaciesMarkDataset(Dataset) :
             label_ = label_.T
         
         noisy_data_ = np.zeros_like(data_)
+
+        
+        #### Truly random training samples ---------------------------------------
+        if self.truly_random == 'truly_random' : 
+            rand_nt = torch.randint(4,(1,))
+            rand_nl = torch.randint(4,(1,))
+
+            nt = ['gaussian', 'poisson','mixed','lpf']
+            nl = [0.01, 0.05, 0.1, 0.5]
+            
+            selected_nt = nt[rand_nt]
+            selected_nl = nl[2] 
+
+            if selected_nt == 'gaussian' : 
+                selected_nl = nl[rand_nl]
+        
+            self.noise_mode = selected_nt 
+            self.noise_factor = selected_nl
+
+        ## -----------------------------------------------------------------------
         
         if self.noise_mode == 'gaussian' : 
             noisy_data_ = random_noise(data_, 'gaussian', seed = self.global_seed , clip=True, mean = 0 , var = self.noise_factor)
@@ -92,6 +115,11 @@ class FaciesMarkDataset(Dataset) :
         if self.noise_mode == 'lpf' : 
             noisy_data_ = butterworth(data_, cutoff_frequency_ratio=0.42, high_pass=False, order=5.0, channel_axis=None) # 50 hz 
         
+
+            
+            
+            
+
         data_shape = data_.shape
         
         
