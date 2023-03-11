@@ -162,7 +162,7 @@ def main(args) :
     )
     
     
-    denoiser_trainer.fit(denoiser, datamodule)
+    # denoiser_trainer.fit(denoiser, datamodule)
     # denoiser_trainer.test(denoiser, datamodule)
     # denoiser_trainer.test(trained_denoiser, datamodule)
 

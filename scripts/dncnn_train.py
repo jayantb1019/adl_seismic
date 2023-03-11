@@ -78,7 +78,7 @@ def main(args) :
         config['train']['data']['dir']['data_root'] = '/content/adl_seismic/data/faciesmark'
 
     elif args['loc'] == 'workstation' : 
-        config['train']['data']['dir']['data_root'] = '/local1/workspace/adl_seismic/data/faciesmark'
+        config['train']['data']['dir']['data_root'] = '/local1/workspace/adl_seismic/data/preprocessed/faciesmark'
 
     
 

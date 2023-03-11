@@ -25,12 +25,12 @@ from dm_faciesmark import FaciesMarkDataModule
 CONFIG_MODEL = '../config/final_config_conventional.yaml'
 
 # dataset folders 
-CONFIG_PATH_INTERPRETATION = r'..\config\final_config_interpretation.yaml'
-CONFIG_PATH_FACIESMARK = r'..\config\final_config_faciesmark.yaml'
-CONFIG_PATH_STDATA12 = r'..\config\final_config_stdata12.yaml'
+CONFIG_PATH_INTERPRETATION = '../config/final_config_interpretation.yaml'
+CONFIG_PATH_FACIESMARK = '../config/final_config_faciesmark.yaml'
+CONFIG_PATH_STDATA12 = '../config/final_config_stdata12.yaml'
 
 # results file path 
-RESULTS_FILE_PATH = r'..\results\conventional_results_20230311.csv'
+RESULTS_FILE_PATH = '../results/conventional_results_20230311_v2.csv'
 
 def get_config(config_path) : 
     # read config file 
@@ -81,7 +81,11 @@ def main() :
     ds_config = get_config(CONFIG_PATH)
     model_config = get_config(CONFIG_MODEL)
 
+    # pass noise args 
+    ds_config['train']['data']['noise_mode'] = tnt
+    ds_config['train']['data']['noise_factor'] = tnl 
 
+    # logger 
     conv_logger = TensorBoardLogger('../lightning_logs', name='covnentional', log_graph=True, version = timestamp)
 
     denoiser_trainer = pl.Trainer(accelerator = 'cpu', logger=conv_logger)
