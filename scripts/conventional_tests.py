@@ -25,12 +25,12 @@ from dm_faciesmark import FaciesMarkDataModule
 CONFIG_MODEL = '../config/final_config_conventional.yaml'
 
 # dataset folders 
-CONFIG_PATH_INTERPRETATION = '../config/final_config_interpretation.yaml'
-CONFIG_PATH_FACIESMARK = '../config/final_config_faciesmark.yaml'
-CONFIG_PATH_STDATA12 = '../config/final_config_stdata12.yaml'
+CONFIG_PATH_INTERPRETATION = r'..\config\final_config_interpretation.yaml'
+CONFIG_PATH_FACIESMARK = r'..\config\final_config_faciesmark.yaml'
+CONFIG_PATH_STDATA12 = r'..\config\final_config_stdata12.yaml'
 
 # results file path 
-RESULTS_FILE_PATH = '/local1/workspace/adl_seismic/results/conventional_results.csv'
+RESULTS_FILE_PATH = r'..\results\conventional_results_20230311.csv'
 
 def get_config(config_path) : 
     # read config file 
@@ -96,7 +96,7 @@ def main() :
     # write to text file 
 
     with open(RESULTS_FILE_PATH, 'a') as f : 
-        f.writelines(f"{timestamp},{dataset},{tnt},{tnl},{results['noisy_mae']},{results['noisy_psnr']},{results['noisy_ssim']},{results['test_mae_nlm']},{results['test_psnr_nlm']},{results['test_ssim_nlm']},{results['test_mae_wav']},{results['test_psnr_wav']},{results['test_ssim_wav']}\n")
+        f.writelines(f"{timestamp},{dataset},{tnt},{tnl},{results['noisy_mae']},{results['noisy_psnr']},{results['noisy_ssim']},{results['test_mae_bm3d']},{results['test_psnr_bm3d']},{results['test_ssim_bm3d']},{results['test_mae_nlm']},{results['test_psnr_nlm']},{results['test_ssim_nlm']},{results['test_mae_wav']},{results['test_psnr_wav']},{results['test_ssim_wav']}\n")
     f.close()
 
 

@@ -103,7 +103,7 @@ class Conventional_Methods(pl.LightningModule) :
         clean = clean.to(torch.float32).to(self.device)
         noisy = noisy.to(torch.float32).to(self.device)
 
-        denoised_bm3d , denoised_nlm, denoised_wav = self(noisy)
+        denoised_bm3d , denoised_nlm, denoised_wav = self.bm3d(noisy), self.nlm(noisy) , self.wav(noisy)
 
 
         noisy_psnr = peak_signal_noise_ratio(noisy, clean) # let's not give data range
@@ -113,6 +113,15 @@ class Conventional_Methods(pl.LightningModule) :
         self.log('noisy_psnr', noisy_psnr)
         self.log('noisy_ssim', noisy_ssim)
         self.log('noisy_mae', noisy_mae)
+        
+        test_psnr_bm3d = peak_signal_noise_ratio(denoised_bm3d, clean)
+        test_ssim_bm3d = structural_similarity_index_measure(denoised_bm3d, clean, sigma=0.5, kernel_size = 5, )
+        test_mae = Loss_L1(clean, denoised_bm3d)
+        
+        
+        
+        
+
 
         self.calc_metrics_logs('bm3d', clean, denoised_bm3d)
         self.calc_metrics_logs('nlm', clean, denoised_nlm)
