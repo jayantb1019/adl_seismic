@@ -4,9 +4,11 @@ adl adapted to seismic denoising
 ### Original Implementation 
 https://github.com/mogvision/ADL  
 
-### Relatd Paper 
+### Paper 
 Adversarial Distortion Learning for Medical Image Denoising 
-[Paperswithcode](https://paperswithcode.com/paper/adversarial-distortion-learning-for-medical)
+
+### Paperswithcode  
+[Paperswithcode](https://paperswithcode.com/paper/adversarial-distortion-learning-for-medical)  
 
 ### DOI : https://arxiv.org/pdf/2204.14100v1.pdf
 
